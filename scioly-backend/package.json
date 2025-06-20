@@ -1,0 +1,21 @@
+{
+  "name": "scioly-backend",
+  "version": "1.0.0",
+  "description": "",
+  "license": "MIT",
+  "author": "Shubh Varshney",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.2",
+    "nodemailer": "^7.0.3"
+  }
+}
