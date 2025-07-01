@@ -4,18 +4,30 @@ import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
 import Events from "./components/Events";
 import Forgot from "./components/Forgot";
+import CreateTest from "./components/CreateTest";
+import TestBank from "./components/TestBank";
+import Test from "./components/Test";
+import RandomTest from "./components/RandomTest";
+import Lineup from "./components/Lineup";
 import UserSettings from "./components/UserSettings";
 import Reset from "./components/Reset";
 import Verify from "./components/Verify";
+import NotFound from "./components/NotFound";
 import userService from "./services/users";
 import eventService from "./services/events";
 import loginService from "./services/login";
-import { Routes, Route, Link, useMatch, useNavigate } from "react-router-dom";
+import testService from "./services/tests";
+import questionService from "./services/questions";
+import { Routes, Route, Link, useNavigate } from "react-router-dom";
 
 function App() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [notif, setNotif] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [tests, setTests] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [questions, setQuestions] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,8 +37,72 @@ function App() {
       setUser(user);
       userService.setToken(user.token);
       eventService.setToken(user.token);
+      testService.setToken(user.token);
+      questionService.setToken(user.token);
     }
   }, []);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const result = await eventService.getAll();
+        if (result) {
+          setEvents(result);
+        }
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const result = await testService.getAll();
+        if (result) {
+          setTests(result);
+        }
+      } catch (error) {
+        console.error("Failed to fetch tests:", error);
+      }
+    };
+    if (user && tests.length === 0) {
+      fetchTests();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const result = await userService.getAll();
+        if (result) {
+          setUsers(result);
+        }
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      }
+    };
+    if (user && users.length === 0) {
+      fetchUsers();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const result = await questionService.getAll();
+        if (result) {
+          setQuestions(result);
+        }
+      } catch (error) {
+        console.error("Failed to fetch questions:", error);
+      }
+    };
+    if (user && questions.length === 0) {
+      fetchQuestions();
+    }
+  }, [user]);
 
   const handleSignUp = async (credentials) => {
     try {
@@ -35,6 +111,8 @@ function App() {
       setUser(user);
       userService.setToken(user.token);
       eventService.setToken(user.token);
+      testService.setToken(user.token);
+      questionService.setToken(user.token);
       navigate("/");
       console.log("Sign Up");
       setNotif(
@@ -90,6 +168,9 @@ function App() {
     setUser(null);
     userService.setToken("");
     eventService.setToken("");
+    testService.setToken("");
+    questionService.setToken("");
+    navigate("/signin");
     setNotif("Logged out successfully");
     setTimeout(() => {
       setNotif(null);
@@ -103,6 +184,8 @@ function App() {
       setUser(user);
       userService.setToken(user.token);
       eventService.setToken(user.token);
+      testService.setToken(user.token);
+      questionService.setToken(user.token);
       console.log("Sign In");
       navigate("/");
       setNotif("Logged in successfully");
@@ -206,7 +289,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[url('/radiant-gradient.svg')] bg-cover">
+    <div className="min-h-screen w-full flex flex-col bg-repeat-y bg-[url('/radiant-combined.svg')] bg-[length:100%]">
       <nav className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
@@ -230,13 +313,44 @@ function App() {
               >
                 Events
               </Link>
+
               {user && (
-                <Link
-                  to="/settings"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-orange-700 hover:bg-orange-200 transition"
-                >
-                  Settings
-                </Link>
+                <div className="relative inline-block text-left group">
+                  <button className="text-sm font-medium text-orange-700 px-3 py-2 rounded-md hover:bg-orange-200 transition">
+                    Tests
+                  </button>
+                  <div
+                    className="absolute left-0 top-full w-40 bg-orange-50 rounded-md shadow-lg 
+                    invisible group-hover:visible transition duration-200 pointer-events-none group-hover:pointer-events-auto"
+                  >
+                    <ul className="py-1">
+                      <li>
+                        <Link
+                          to="/tests"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                        >
+                          Test Bank
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/tests/create"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                        >
+                          Create Test
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/tests/random"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                        >
+                          Create Random Test
+                        </Link>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               )}
             </div>
             <div className="flex space-x-4">
@@ -256,12 +370,20 @@ function App() {
                   </Link>
                 </>
               ) : (
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-2 rounded-md text-sm font-medium text-orange-700 hover:bg-red-600 hover:text-white transition"
-                >
-                  Logout
-                </button>
+                <>
+                  <Link
+                    to="/settings"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-orange-700 hover:bg-orange-200 transition"
+                  >
+                    Settings
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="px-3 py-2 rounded-md text-sm font-medium text-orange-700 hover:bg-red-600 hover:text-white transition"
+                  >
+                    Logout
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -291,7 +413,7 @@ function App() {
           )}
 
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home user={user} />} />
             <Route
               path="/signin"
               element={
@@ -304,7 +426,12 @@ function App() {
                 <SignUp handleSignUp={handleSignUp} setError={setError} />
               }
             />
-            <Route path="/events" element={<Events user={user} />} />
+            <Route
+              path="/events"
+              element={
+                <Events user={user} events={events} setEvents={setEvents} />
+              }
+            />
             <Route
               path="/settings"
               element={
@@ -327,6 +454,36 @@ function App() {
               path="/verify"
               element={<Verify setError={setError} setNotif={setNotif} />}
             />
+            <Route
+              path="/tests"
+              element={<TestBank tests={tests} events={events} user={user} />}
+            />
+            <Route
+              path="/tests/create"
+              element={
+                <CreateTest
+                  setNotif={setNotif}
+                  events={events}
+                  tests={tests}
+                  setTests={setTests}
+                  setError={setError}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/tests/random"
+              element={<RandomTest tests={tests} questions={questions} user={user} events={events} setError={setError} setNotif={setNotif} />}
+            />
+            <Route
+              path="/tests/:id"
+              element={<Test tests={tests} user={user} />}
+            />
+            <Route
+              path="/lineup"
+              element={<Lineup events={events} users={users} />}
+            />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </div>

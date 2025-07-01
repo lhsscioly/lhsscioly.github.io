@@ -1,44 +1,51 @@
 import { Link } from "react-router-dom";
 
-const Home = () => {
+const Home = ({ user }) => {
   return (
-    <div className="container mx-auto px-6 py-24 max-w-5xl flex flex-col justify-center items-center text-center min-h-screen">
-      <h2 className="text-5xl font-extrabold text-white mb-6">
-        Welcome to Libertyville High School Science Olympiad
-      </h2>
-      <p className="text-lg text-orange-100 mb-10 max-w-xl">
-        Join the community, access events, practice tests, and excel in Science
-        Olympiad!
-      </p>
-      <div className="space-x-6">
-        <Link
-          to="/signup"
-          className="bg-orange-500 text-white px-10 py-3 rounded-lg text-lg font-semibold hover:bg-orange-700 transition shadow-md"
-        >
-          Get Started
-        </Link>
+    <div className="min-h-screen flex flex-col items-center px-6 py-24 text-center overflow-hidden">
+      <div className="max-w-4xl animate-fade-in-up">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-6 drop-shadow-md">
+          Welcome to Libertyville High School Science Olympiad
+        </h1>
+        <p className="text-lg sm:text-xl bg-white/20 text-orange-50 font-medium rounded-xl shadow-lg p-5 max-w-4xl mx-auto mb-15 backdrop-blur-md">
+          Join the community, access events, practice tests, and excel in
+          Science Olympiad!
+        </p>
+        <div className="mb-16 animate-fade-in-up animation-delay-200">
+          {user ? (
+            <Link
+              to="/Events"
+              className="bg-white text-orange-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-orange-100 shadow-md transition duration-200"
+            >
+              Events & Resources
+            </Link>
+          ) : (
+            <Link
+              to="/signup"
+              className="bg-white text-orange-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-orange-100 shadow-md transition duration-200"
+            >
+              Get Started
+            </Link>
+          )}
+        </div>
       </div>
 
-      <section
-        id="features"
-        className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-10 max-w-6xl w-full"
-      >
-        <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-          <div className="mb-4 text-orange-600 text-5xl">🎯</div>
-          <h3 className="text-2xl font-bold mb-2 text-orange-700">
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-4xl animate-fade-in-up animation-delay-400">
+        <div className="bg-white/80 backdrop-blur-md p-6 rounded-xl shadow-lg text-center transform hover:scale-105 transition duration-300">
+          <div className="text-5xl mb-4">🎯</div>
+          <h3 className="text-xl font-bold text-orange-700 mb-2">
             Track Your Progress
           </h3>
-          <p className="text-orange-600">
+          <p className="text-orange-600 text-sm sm:text-base">
             Monitor your performance and improve with feedback.
           </p>
         </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-          <div className="mb-4 text-orange-600 text-5xl">📚</div>
-          <h3 className="text-2xl font-bold mb-2 text-orange-700">
+        <div className="bg-white/80 backdrop-blur-md p-6 rounded-xl shadow-lg text-center transform hover:scale-105 transition duration-300">
+          <div className="text-5xl mb-4">📚</div>
+          <h3 className="text-xl font-bold text-orange-700 mb-2">
             Practice Tests
           </h3>
-          <p className="text-orange-600">
+          <p className="text-orange-600 text-sm sm:text-base">
             Access curated practice tests tailored for Science Olympiad events.
           </p>
         </div>

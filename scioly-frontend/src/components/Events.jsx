@@ -4,8 +4,9 @@ import eventService from "../services/events";
 import Modal from "./Modal";
 
 const Events = (props) => {
-  const [error, setError] = useState(null)
-  const [events, setEvents] = useState([]);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState("");
+  const [eventsShow, setEventsShow] = useState([]);
   const [name, setName] = useState("");
   const [group, setGroup] = useState("");
   const [description, setDescription] = useState("");
@@ -14,16 +15,16 @@ const Events = (props) => {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const result = await eventService.getAll();
-        setEvents(result);
-      } catch (error) {
-        console.error("Failed to fetch events:", error);
-      }
-    };
-    fetchEvents();
-  }, []);
+    if (filter.length === 0) {
+      setEventsShow(props.events);
+    } else {
+      setEventsShow(
+        props.events.filter((e) =>
+          e.name.toLowerCase().includes(filter.toLowerCase()),
+        ),
+      );
+    }
+  }, [filter]);
 
   const addResource = () => {
     if (resource.trim()) {
@@ -41,19 +42,23 @@ const Events = (props) => {
         description,
         resources,
       });
-      setEvents(events.concat(newEvent));
+      props.setEvents(props.events.concat(newEvent));
       setName("");
       setGroup("");
       setDescription("");
       setResource("");
       setResources([]);
       setModalOpen(false);
+      setFilter("");
     } catch (error) {
-      if (error.response?.data?.error && error.response.data.error === "expected `event name` to be unique") {
+      if (
+        error.response?.data?.error &&
+        error.response.data.error === "expected `event name` to be unique"
+      ) {
         setError("Event already added");
         setTimeout(() => {
-          setError(null)
-        }, 5000)
+          setError(null);
+        }, 5000);
       } else {
         console.error("Failed to add event:", error);
       }
@@ -63,8 +68,8 @@ const Events = (props) => {
   const editEvent = async (id, eventObject) => {
     try {
       const updatedEvent = await eventService.changeEvent(id, eventObject);
-      setEvents(
-        events.map((event) =>
+      props.setEvents(
+        props.events.map((event) =>
           event.id === updatedEvent.id ? updatedEvent : event,
         ),
       );
@@ -76,7 +81,7 @@ const Events = (props) => {
   const deleteEvent = async (id) => {
     try {
       await eventService.deleteEvent(id);
-      setEvents(events.filter(e => e.id !== id))
+      props.setEvents(props.events.filter((e) => e.id !== id));
     } catch (error) {
       console.error("Failed to delete event:", error);
     }
@@ -84,22 +89,33 @@ const Events = (props) => {
 
   return (
     <div className="max-w-3xl mx-auto mt-16 p-6 bg-white rounded-md shadow-md">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold mb-6 text-center text-orange-800">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h2 className="text-2xl font-semibold text-orange-800 text-center sm:text-left flex-1">
           Science Olympiad Events
         </h2>
 
-        {props.user && props.user.admin && (
-          <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Filter events..."
+          value={filter}
+          onChange={({ target }) => setFilter(target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 w-full sm:w-1/3"
+        />
+      </div>
+
+      {props.user?.admin && (
+        <div className="py-4">
+          <div className="flex items-center justify-center">
             <button
               onClick={() => setModalOpen(true)}
-              className="text-orange-600 text-3xl px-4 py-2 rounded hover:text-orange-700 transition"
+              className="text-orange-600 text-4xl pt-2 pb-4 py-2 rounded hover:text-orange-700 transition pb-2 w-full border border-orange-300 border-dashed rounded-md hover:bg-orange-100"
+              title="Add Event"
             >
               +
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <Modal
         isOpen={modalOpen}
@@ -114,13 +130,13 @@ const Events = (props) => {
         title="Add New Event"
       >
         {error && (
-            <div
-              className="mb-4 rounded-md bg-red-100 border border-red-500 text-red-800 px-4 py-3 shadow-md"
-              role="alert"
-            >
-              <strong className="font-bold">Error: </strong>
-              <span className="block sm:inline">{error}</span>
-            </div>
+          <div
+            className="mb-4 rounded-md bg-red-100 border border-red-500 text-red-800 px-4 py-3 shadow-md"
+            role="alert"
+          >
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
         )}
         <form
           onSubmit={handleEventAdd}
@@ -141,11 +157,32 @@ const Events = (props) => {
             <label className="block text-sm font-medium text-orange-800 mb-1">
               Category
             </label>
-            <input
+
+            <select
+              name="category"
               value={group}
               onChange={({ target }) => setGroup(target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
+              className="w-full px-1 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-orange-50"
+            >
+              <option value="" disabled hidden>
+                Select Category
+              </option>
+              <option value="Life, Personal & Social Science">
+                Life, Personal & Social Science
+              </option>
+              <option value="Earth And Space Science">
+                Earth And Space Science
+              </option>
+              <option value="Physical Science & Chemistry">
+                Physical Science & Chemistry
+              </option>
+              <option value="Technology & Engineering">
+                Technology & Engineering
+              </option>
+              <option value="Inquiry & Nature of Science">
+                Inquiry & Nature of Science
+              </option>
+            </select>
           </div>
 
           <div>
@@ -220,7 +257,7 @@ const Events = (props) => {
       </Modal>
 
       <ul className="space-y-4">
-        {events.map((e) => (
+        {eventsShow.map((e) => (
           <Event
             user={props.user}
             key={e.id}

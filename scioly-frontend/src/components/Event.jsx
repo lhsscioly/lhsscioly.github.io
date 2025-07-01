@@ -61,15 +61,35 @@ const Event = (props) => {
               </button>
             </div>
           </div>
-          <div className="text-sm text-gray-800 mb-1">
-            <label className="font-medium block mb-1">Category:</label>
-            <input
+          <div className="text-sm text-gray-800 mb-3">
+            <label className="font-medium block mb-1">Category</label>
+
+            <select
+              name="category"
               value={group}
               onChange={({ target }) => setGroup(target.value)}
-              className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
+              className="w-full px-1 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+            >
+              <option value="" disabled hidden>
+                Select Category
+              </option>
+              <option value="Life, Personal & Social Science">
+                Life, Personal & Social Science
+              </option>
+              <option value="Earth And Space Science">
+                Earth And Space Science
+              </option>
+              <option value="Physical Science & Chemistry">
+                Physical Science & Chemistry
+              </option>
+              <option value="Technology & Engineering">
+                Technology & Engineering
+              </option>
+              <option value="Inquiry & Nature of Science">
+                Inquiry & Nature of Science
+              </option>
+            </select>
           </div>
-
           <div className="text-sm text-gray-800 mb-3">
             <label className="font-medium block mb-1">Description:</label>
             <textarea

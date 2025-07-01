@@ -17,7 +17,12 @@ const userSchema = mongoose.Schema({
     minLength: 2,
   },
   admin: Boolean,
-  events: [String],
+  teams: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
+    },
+  ],
   passwordHash: String,
   verified: {
     type: Boolean,
