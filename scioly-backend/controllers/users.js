@@ -7,14 +7,16 @@ const { userExtractor } = require("../utils/middleware");
 const { randomUUID } = require("crypto");
 
 usersRouter.get("/", async (request, response) => {
-  const users = await User.find({ verified: true });
+  const users = await User.find({ verified: true }).populate("teams");
   return response.json(users);
 });
 
 usersRouter.get("/verify", async (request, response) => {
   const { token } = request.query;
 
-  const user = await User.findOne({ verificationToken: token });
+  const user = await User.findOne({ verificationToken: token }).populate(
+    "teams",
+  );
 
   if (!user) {
     return response.status(400).json({ error: "Invalid or expired token" });

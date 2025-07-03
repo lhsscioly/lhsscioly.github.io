@@ -1,22 +1,28 @@
 import { useState } from "react";
 
 const Event = (props) => {
-  const event = props.event;
   const [edit, setEdit] = useState(false);
-  const [name, setName] = useState(event.name);
-  const [group, setGroup] = useState(event.group);
-  const [description, setDescription] = useState(event.description);
+  const [name, setName] = useState(props.event.name);
+  const [block, setBlock] = useState(props.event.block);
+  const [group, setGroup] = useState(props.event.group);
+  const [description, setDescription] = useState(props.event.description);
   const [resource, setResource] = useState("");
-  const [resources, setResources] = useState(event.resources);
+  const [resources, setResources] = useState(props.event.resources);
 
   const editEvent = async (e) => {
     e.preventDefault();
-    await props.editEvent(event.id, { name, group, description, resources });
+    await props.editEvent(props.event.id, {
+      name,
+      group,
+      block,
+      description,
+      resources,
+    });
     setEdit(false);
   };
 
   const deleteEvent = async () => {
-    await props.deleteEvent(event.id);
+    await props.deleteEvent(props.event.id);
   };
 
   const addResource = () => {
@@ -50,11 +56,12 @@ const Event = (props) => {
                 className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700 transition"
                 onClick={() => {
                   setEdit(false);
-                  setName(event.name);
-                  setGroup(event.group);
-                  setDescription(event.description);
+                  setName(props.event.name);
+                  setBlock(props.event.block);
+                  setGroup(props.event.group);
+                  setDescription(props.event.description);
                   setResource("");
-                  setResources(event.resources);
+                  setResources(props.event.resources);
                 }}
               >
                 Cancel
@@ -63,7 +70,6 @@ const Event = (props) => {
           </div>
           <div className="text-sm text-gray-800 mb-3">
             <label className="font-medium block mb-1">Category</label>
-
             <select
               name="category"
               value={group}
@@ -88,6 +94,23 @@ const Event = (props) => {
               <option value="Inquiry & Nature of Science">
                 Inquiry & Nature of Science
               </option>
+            </select>
+          </div>
+
+          <div className="text-sm text-gray-800 mb-3">
+            <label className="font-medium block mb-1">Block</label>
+            <select
+              name="block"
+              value={block}
+              onChange={({ target }) => setBlock(target.value)}
+              className="w-full px-1 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+            >
+              <option value="">Self Schedule</option>
+              <option value="1">Block 1</option>
+              <option value="2">Block 2</option>
+              <option value="3">Block 3</option>
+              <option value="4">Block 4</option>
+              <option value="5">Block 5</option>
             </select>
           </div>
           <div className="text-sm text-gray-800 mb-3">
@@ -156,7 +179,7 @@ const Event = (props) => {
       <li className="p-4 bg-white rounded-md shadow-sm border border-orange-200">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold text-orange-700 mb-1">
-            {event.name}
+            {props.event.name}
           </h3>
           {props.user && props.user.admin ? (
             <div className="flex justify-between gap-2">
@@ -176,17 +199,22 @@ const Event = (props) => {
           ) : null}
         </div>
         <p className="text-sm text-gray-800 mb-1">
-          <span className="font-medium">Category:</span> {event.group}
+          <span className="font-medium">Category:</span> {props.event.group}
+        </p>
+        <p className="text-sm text-gray-800 mb-1">
+          <span className="font-medium">Block:</span>{" "}
+          {props.event.block === "" ? "Self Schedule" : props.event.block}
         </p>
         <p className="text-sm text-gray-800 mb-3">
-          <span className="font-medium">Description:</span> {event.description}
+          <span className="font-medium">Description:</span>{" "}
+          {props.event.description}
         </p>
 
         {props.user ? (
           <div>
             <p className="text-sm font-medium text-gray-900 mb-1">Resources:</p>
             <div className="flex flex-wrap gap-2">
-              {event.resources.map((r) => (
+              {props.event.resources.map((r) => (
                 <a
                   key={r}
                   href={r}

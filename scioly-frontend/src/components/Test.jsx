@@ -1,9 +1,11 @@
-import { Link, useMatch } from "react-router-dom";
+import { Link, useNavigate, useMatch } from "react-router-dom";
 import { useState, useEffect } from "react";
+import testService from "../services/tests";
 
-const Test = ({ tests, user }) => {
+const Test = ({ tests, user, teams, setError, setNotif, setTests }) => {
   const [test, setTest] = useState(null);
   const match = useMatch("/tests/:id");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (match && tests) {
@@ -40,6 +42,35 @@ const Test = ({ tests, user }) => {
     );
   }
 
+  const handleAssign = async () => {
+    if (!user || !test) return;
+    if (!teams || teams.length === 0) {
+      setError("No teams available to assign this test.");
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return;
+    }
+
+    let savedTest;
+    try {
+      savedTest = await testService.updateTest(test.id, {
+        assignees: teams.filter((t) => t.event === test.event).map((t) => t.id),
+      });
+    } catch (error) {
+      console.error("Error assigning test:", error);
+      return;
+    }
+    if (savedTest) {
+      setTests(tests.map((t) => (t.id === test.id ? savedTest : t)));
+    }
+    setNotif("Test assigned successfully!");
+    setTimeout(() => {
+      setNotif(null);
+    }, 5000);
+    navigate("/tests");
+  };
+
   return (
     <div className="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-md shadow">
       <div className="mb-6">
@@ -50,7 +81,10 @@ const Test = ({ tests, user }) => {
           >
             ← Return to Test Bank
           </Link>
-          <button className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-4 py-2 rounded shadow transition">
+          <button
+            onClick={handleAssign}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-4 py-2 rounded shadow transition"
+          >
             Assign
           </button>
         </div>

@@ -9,6 +9,8 @@ import TestBank from "./components/TestBank";
 import Test from "./components/Test";
 import RandomTest from "./components/RandomTest";
 import Lineup from "./components/Lineup";
+import AssignedTests from "./components/AssignedTests";
+import TakeTest from "./components/TakeTest";
 import UserSettings from "./components/UserSettings";
 import Reset from "./components/Reset";
 import Verify from "./components/Verify";
@@ -17,8 +19,9 @@ import userService from "./services/users";
 import eventService from "./services/events";
 import loginService from "./services/login";
 import testService from "./services/tests";
+import teamService from "./services/teams";
 import questionService from "./services/questions";
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { Routes, Route, Link, useNavigate, Router } from "react-router-dom";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -28,6 +31,7 @@ function App() {
   const [tests, setTests] = useState([]);
   const [users, setUsers] = useState([]);
   const [questions, setQuestions] = useState([]);
+  const [teams, setTeams] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,6 +43,7 @@ function App() {
       eventService.setToken(user.token);
       testService.setToken(user.token);
       questionService.setToken(user.token);
+      teamService.setToken(user.token);
     }
   }, []);
 
@@ -83,10 +88,10 @@ function App() {
         console.error("Failed to fetch users:", error);
       }
     };
-    if (user && users.length === 0) {
+    if (user) {
       fetchUsers();
     }
-  }, [user]);
+  }, [user, teams]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -104,6 +109,22 @@ function App() {
     }
   }, [user]);
 
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const result = await teamService.getAll();
+        if (result) {
+          setTeams(result);
+        }
+      } catch (error) {
+        console.error("Failed to fetch teams:", error);
+      }
+    };
+    if (user && teams.length === 0) {
+      fetchTeams();
+    }
+  }, [user]);
+
   const handleSignUp = async (credentials) => {
     try {
       const user = await userService.createUser(credentials);
@@ -113,6 +134,7 @@ function App() {
       eventService.setToken(user.token);
       testService.setToken(user.token);
       questionService.setToken(user.token);
+      teamService.setToken(user.token);
       navigate("/");
       console.log("Sign Up");
       setNotif(
@@ -170,6 +192,7 @@ function App() {
     eventService.setToken("");
     testService.setToken("");
     questionService.setToken("");
+    teamService.setToken("");
     navigate("/signin");
     setNotif("Logged out successfully");
     setTimeout(() => {
@@ -186,6 +209,7 @@ function App() {
       eventService.setToken(user.token);
       testService.setToken(user.token);
       questionService.setToken(user.token);
+      teamService.setToken(user.token);
       console.log("Sign In");
       navigate("/");
       setNotif("Logged in successfully");
@@ -317,11 +341,45 @@ function App() {
               {user && (
                 <div className="relative inline-block text-left group">
                   <button className="text-sm font-medium text-orange-700 px-3 py-2 rounded-md hover:bg-orange-200 transition">
+                    Meetings
+                  </button>
+                  <div
+                    className="absolute left-0 top-full w-40 bg-orange-50 rounded-md shadow-lg 
+                    invisible group-hover:visible transition duration-100 pointer-events-none group-hover:pointer-events-auto"
+                  >
+                    <ul className="py-1">
+                      <li>
+                        <Link
+                          to="/lineup"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                        >
+                          Lineup
+                        </Link>
+                      </li>
+                      {users.find((u) => u.id === user.id)?.teams?.length >
+                        0 && (
+                        <li>
+                          <Link
+                            to="/assigned"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                          >
+                            Assigned Tests
+                          </Link>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {user && user.admin && (
+                <div className="relative inline-block text-left group">
+                  <button className="text-sm font-medium text-orange-700 px-3 py-2 rounded-md hover:bg-orange-200 transition">
                     Tests
                   </button>
                   <div
                     className="absolute left-0 top-full w-40 bg-orange-50 rounded-md shadow-lg 
-                    invisible group-hover:visible transition duration-200 pointer-events-none group-hover:pointer-events-auto"
+                    invisible group-hover:visible transition duration-100 pointer-events-none group-hover:pointer-events-auto"
                   >
                     <ul className="py-1">
                       <li>
@@ -456,7 +514,15 @@ function App() {
             />
             <Route
               path="/tests"
-              element={<TestBank tests={tests} events={events} user={user} />}
+              element={
+                <TestBank
+                  tests={tests}
+                  events={events}
+                  user={user}
+                  teams={teams}
+                  setTests={setTests}
+                />
+              }
             />
             <Route
               path="/tests/create"
@@ -473,15 +539,65 @@ function App() {
             />
             <Route
               path="/tests/random"
-              element={<RandomTest tests={tests} questions={questions} user={user} events={events} setError={setError} setNotif={setNotif} />}
+              element={
+                <RandomTest
+                  tests={tests}
+                  questions={questions}
+                  user={user}
+                  events={events}
+                  setError={setError}
+                  setNotif={setNotif}
+                  teams={teams}
+                  setTests={setTests}
+                />
+              }
             />
             <Route
               path="/tests/:id"
-              element={<Test tests={tests} user={user} />}
+              element={
+                <Test
+                  tests={tests}
+                  user={user}
+                  teams={teams}
+                  setError={setError}
+                  setNotif={setNotif}
+                  setTests={setTests}
+                />
+              }
             />
             <Route
               path="/lineup"
-              element={<Lineup events={events} users={users} />}
+              element={
+                <Lineup
+                  setTeams={setTeams}
+                  events={events}
+                  users={users}
+                  teams={teams}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/assigned"
+              element={
+                <AssignedTests
+                  tests={tests}
+                  user={user}
+                  users={users}
+                  teams={teams}
+                />
+              }
+            />
+            <Route
+              path="/assigned/:id"
+              element={
+                <TakeTest
+                  tests={tests}
+                  user={user}
+                  users={users}
+                  teams={teams}
+                />
+              }
             />
             <Route path="*" element={<NotFound />} />
           </Routes>

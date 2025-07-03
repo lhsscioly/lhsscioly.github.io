@@ -11,10 +11,11 @@ eventsRouter.post("/", userExtractor, async (request, response) => {
   if (!request.user || !request.user.admin) {
     return response.status(401).json({ error: "unauthorized" });
   }
-  const { name, group, description, resources } = request.body;
+  const { name, group, block, description, resources } = request.body;
   const eventObject = new Event({
     name,
     group,
+    block,
     description,
     resources,
   });
@@ -39,11 +40,12 @@ eventsRouter.put("/:id", userExtractor, async (request, response) => {
   if (!request.user || !request.user.admin) {
     return response.status(401).json({ error: "unauthorized" });
   }
-  const { name, group, description, resources } = request.body;
+  const { name, group, block, description, resources } = request.body;
   const id = request.params.id;
   const eventObject = await Event.findOne({ _id: id });
   eventObject.name = name;
   eventObject.group = group;
+  eventObject.block = block;
   eventObject.description = description;
   eventObject.resources = resources;
 

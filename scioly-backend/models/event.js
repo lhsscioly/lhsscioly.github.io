@@ -7,6 +7,7 @@ const eventSchema = mongoose.Schema({
     unique: true,
   },
   group: String,
+  block: String,
   description: String,
   resources: [String],
 });

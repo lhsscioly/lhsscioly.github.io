@@ -14,7 +14,7 @@ const Home = ({ user }) => {
         <div className="mb-16 animate-fade-in-up animation-delay-200">
           {user ? (
             <Link
-              to="/Events"
+              to="/events"
               className="bg-white text-orange-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-orange-100 shadow-md transition duration-200"
             >
               Events & Resources

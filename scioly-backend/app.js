@@ -8,6 +8,7 @@ const loginRouter = require("./controllers/login");
 const eventsRouter = require("./controllers/events");
 const questionsRouter = require("./controllers/questions");
 const testsRouter = require("./controllers/tests");
+const teamsRouter = require("./controllers/teams");
 
 const app = express();
 
@@ -30,5 +31,6 @@ app.use("/api/login", loginRouter);
 app.use("/api/events", eventsRouter);
 app.use("/api/questions", questionsRouter);
 app.use("/api/tests", testsRouter);
+app.use("/api/teams", teamsRouter);
 
 module.exports = app;

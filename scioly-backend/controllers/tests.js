@@ -44,7 +44,7 @@ testsRouter.post("/", userExtractor, async (request, response) => {
       assignees: [],
     });
 
-    const savedTest = await testObject.save();
+    const savedTest = await testObject.save().populate("questions");
 
     return response.status(201).json(savedTest);
   } catch (error) {
@@ -55,7 +55,7 @@ testsRouter.post("/", userExtractor, async (request, response) => {
 testsRouter.put("/:id", userExtractor, async (request, response) => {
   const id = request.params.id;
 
-  const { questions, assignees } = request.body;
+  const { assignees } = request.body;
 
   if (!request.user) {
     return response.status(401).json({ error: "unauthorized" });
@@ -66,11 +66,14 @@ testsRouter.put("/:id", userExtractor, async (request, response) => {
     return response.status(404).json({ error: "question not found" });
   }
 
-  test.questions = questions;
   test.assignees = assignees;
 
-  const savedTest = await testObject.save();
-  return response.status(201).json(savedTest);
+  try {
+    const savedTest = await test.save().populate("questions");
+    return response.status(201).json(savedTest);
+  } catch (error) {
+    return response.status(400).json({ error: error.message });
+  }
 });
 
 module.exports = testsRouter;

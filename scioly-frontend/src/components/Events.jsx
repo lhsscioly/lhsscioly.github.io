@@ -9,6 +9,7 @@ const Events = (props) => {
   const [eventsShow, setEventsShow] = useState([]);
   const [name, setName] = useState("");
   const [group, setGroup] = useState("");
+  const [block, setBlock] = useState("");
   const [description, setDescription] = useState("");
   const [resource, setResource] = useState("");
   const [resources, setResources] = useState([]);
@@ -24,7 +25,7 @@ const Events = (props) => {
         ),
       );
     }
-  }, [filter]);
+  }, [filter, props.events]);
 
   const addResource = () => {
     if (resource.trim()) {
@@ -38,12 +39,14 @@ const Events = (props) => {
     try {
       const newEvent = await eventService.createEvent({
         name,
+        block,
         group,
         description,
         resources,
       });
       props.setEvents(props.events.concat(newEvent));
       setName("");
+      setBlock("");
       setGroup("");
       setDescription("");
       setResource("");
@@ -182,6 +185,26 @@ const Events = (props) => {
               <option value="Inquiry & Nature of Science">
                 Inquiry & Nature of Science
               </option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-orange-800 mb-1">
+              Block
+            </label>
+
+            <select
+              name="block"
+              value={block}
+              onChange={({ target }) => setBlock(target.value)}
+              className="w-full px-1 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-orange-50"
+            >
+              <option value="">Self Schedule</option>
+              <option value="1">Block 1</option>
+              <option value="2">Block 2</option>
+              <option value="3">Block 3</option>
+              <option value="4">Block 4</option>
+              <option value="4">Block 5</option>
             </select>
           </div>
 

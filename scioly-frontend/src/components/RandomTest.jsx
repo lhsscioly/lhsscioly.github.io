@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import testService from "../services/tests";
 
 const RandomTest = (props) => {
@@ -32,21 +31,37 @@ const RandomTest = (props) => {
       return;
     }
 
-    if (isNaN(Number(numMCQ)) || isNaN(Number(numSAQ)) || isNaN(Number(numLEQ))) {
+    if (
+      isNaN(Number(numMCQ)) ||
+      isNaN(Number(numSAQ)) ||
+      isNaN(Number(numLEQ))
+    ) {
       props.setError("Please enter valid numbers for question counts.");
       setTimeout(() => props.setError(null), 5000);
       return;
     }
 
     try {
-      const mcqQuestions = props.questions.filter(q => q.event === event && q.type === "mcq");
-      const shortAnswerQuestions = props.questions.filter(q => q.event === event && q.type === "saq");
-      const leqQuestions = props.questions.filter(q => q.event === event && q.type === "leq");
+      const mcqQuestions = props.questions.filter(
+        (q) => q.event === event && q.type === "mcq",
+      );
+      const shortAnswerQuestions = props.questions.filter(
+        (q) => q.event === event && q.type === "saq",
+      );
+      const leqQuestions = props.questions.filter(
+        (q) => q.event === event && q.type === "leq",
+      );
 
       const selected = [
-        ...mcqQuestions.sort(() => 0.5 - Math.random()).slice(0, Number(numMCQ)),
-        ...shortAnswerQuestions.sort(() => 0.5 - Math.random()).slice(0, Number(numSAQ)),
-        ...leqQuestions.sort(() => 0.5 - Math.random()).slice(0, Number(numLEQ)),
+        ...mcqQuestions
+          .sort(() => 0.5 - Math.random())
+          .slice(0, Number(numMCQ)),
+        ...shortAnswerQuestions
+          .sort(() => 0.5 - Math.random())
+          .slice(0, Number(numSAQ)),
+        ...leqQuestions
+          .sort(() => 0.5 - Math.random())
+          .slice(0, Number(numLEQ)),
       ];
 
       setQuestions(selected);
@@ -55,9 +70,53 @@ const RandomTest = (props) => {
     }
   };
 
+  const handleAssign = async () => {
+    if (questions.length === 0) {
+      props.setError("No questions generated to assign.");
+      setTimeout(() => {
+        props.setError(null);
+      }, 5000);
+      return;
+    }
+
+    const testObject = {
+      event,
+      random: true,
+      questions: questions.map((q) => q.id),
+    };
+
+    try {
+      if (!props.teams || props.teams.length === 0) {
+        props.setError("No teams available to assign this test.");
+        setTimeout(() => {
+          props.setError(null);
+        }, 5000);
+        return;
+      }
+      const createdTest = await testService.createTest(testObject);
+      if (createdTest) {
+        const savedTest = await testService.updateTest(createdTest.id, {
+          assignees: teams
+            .filter((t) => t.event === test.event)
+            .map((t) => t.id),
+        });
+        props.setNotif("Test assigned successfully!");
+        setTimeout(() => {
+          props.setNotif(null);
+        }, 5000);
+        props.setTests(tests.concat(savedTest));
+      }
+      setQuestions([]);
+    } catch (error) {
+      console.error("Error assigning test:", error);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto mt-12 p-6 bg-white rounded-lg shadow-md space-y-6">
-      <h2 className="text-2xl font-semibold text-orange-800">Create Random Practice Test</h2>
+      <h2 className="text-2xl font-semibold text-orange-800">
+        Create Random Practice Test
+      </h2>
 
       <div className="grid-cols-2 gap-4">
         <label className="text-sm font-medium text-orange-700">Event</label>
@@ -76,37 +135,43 @@ const RandomTest = (props) => {
 
         <div className="flex justify-between items-center">
           <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-orange-700"># of MCQs</label>
-          <input
-            type="number"
-            min="0"
-            value={numMCQ}
-            onChange={(e) => setNumMCQ(e.target.value)}
-            className="px-3 py-2 border border-orange-300 rounded-md"
-          />
-        </div>
+            <label className="text-sm font-medium text-orange-700">
+              # of MCQs
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={numMCQ}
+              onChange={(e) => setNumMCQ(e.target.value)}
+              className="px-3 py-2 border border-orange-300 rounded-md"
+            />
+          </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-orange-700"># of SAQs</label>
-          <input
-            type="number"
-            min="0"
-            value={numSAQ}
-            onChange={(e) => setNumSAQ(e.target.value)}
-            className="px-3 py-2 border border-orange-300 rounded-md"
-          />
-        </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-orange-700">
+              # of SAQs
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={numSAQ}
+              onChange={(e) => setNumSAQ(e.target.value)}
+              className="px-3 py-2 border border-orange-300 rounded-md"
+            />
+          </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-orange-700"># of LEQs</label>
-          <input
-            type="number"
-            min="0"
-            value={numLEQ}
-            onChange={(e) => setNumLEQ(e.target.value)}
-            className="px-3 py-2 border border-orange-300 rounded-md"
-          />
-        </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-orange-700">
+              # of LEQs
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={numLEQ}
+              onChange={(e) => setNumLEQ(e.target.value)}
+              className="px-3 py-2 border border-orange-300 rounded-md"
+            />
+          </div>
         </div>
       </div>
 
@@ -122,8 +187,13 @@ const RandomTest = (props) => {
       {questions.length > 0 && (
         <div className="mt-8">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-orange-700">Generated Questions</h3>
-            <button className="bg-amber-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-amber-700 transition">
+            <h3 className="text-xl font-semibold text-orange-700">
+              Generated Questions
+            </h3>
+            <button
+              onClick={handleAssign}
+              className="bg-amber-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-amber-700 transition"
+            >
               Assign Test
             </button>
           </div>

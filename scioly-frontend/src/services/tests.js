@@ -26,4 +26,17 @@ const createTest = async (testObject) => {
   return response.data;
 };
 
-export default { setToken, getAll, createTest };
+const updateTest = async (id, testObject) => {
+  const response = await axios.put(
+    `${baseUrl}/${id}`,
+    { assignees: testObject.assignees },
+    {
+      headers: {
+        Authorization: token,
+      },
+    },
+  );
+  return response.data;
+};
+
+export default { setToken, getAll, createTest, updateTest };
