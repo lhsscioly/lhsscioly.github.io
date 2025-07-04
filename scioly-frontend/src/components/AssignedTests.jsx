@@ -40,7 +40,10 @@ const AssignedTests = ({ tests, user, users }) => {
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                 <div>
                   <p className="text-sm text-orange-700 font-semibold">
-                    {test.school} {test.year} - {test.event}
+                    {test.random ?
+                      `Random Test - ${test.event}` 
+                      : `${test.school} ${test.year} - ${test.event}`
+                    }
                   </p>
                 </div>
                 <Link

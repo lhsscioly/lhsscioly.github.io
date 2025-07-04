@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 const TestBank = (props) => {
-  const [tests, setTests] = useState(props.tests);
+  const [tests, setTests] = useState([]);
   const [eventFilter, setEventFilter] = useState("");
   const [schoolFilter, setSchoolFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
@@ -10,10 +10,10 @@ const TestBank = (props) => {
   useEffect(() => {
     const filtered = props.tests.filter(
       (t) =>
+        !t.random &&
         t.event.includes(eventFilter) &&
         t.school.includes(schoolFilter) &&
-        t.year.toString().includes(yearFilter) &&
-        !t.random,
+        t.year.toString().includes(yearFilter)
     );
     setTests(filtered);
   }, [eventFilter, schoolFilter, yearFilter, props.tests]);
@@ -43,7 +43,7 @@ const TestBank = (props) => {
               onChange={({ target }) => setEventFilter(target.value)}
               className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
-              <option value="">All</option>
+              <option key="all" value="">All</option>
               {props.events.map((e) => (
                 <option key={e.name} value={e.name}>
                   {e.name}
@@ -61,8 +61,8 @@ const TestBank = (props) => {
               onChange={({ target }) => setSchoolFilter(target.value)}
               className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
-              <option value="">All</option>
-              {[...new Set(props.tests.map((t) => t.school))].map((s) => (
+              <option key="all" value="">All</option>
+              {[...new Set(tests.map((t) => t.school))].map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
@@ -79,8 +79,8 @@ const TestBank = (props) => {
               onChange={({ target }) => setYearFilter(target.value)}
               className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
-              <option value="">All</option>
-              {[...new Set(props.tests.map((t) => t.year))].map((y) => (
+              <option key="all" value="">All</option>
+              {[...new Set(tests.map((t) => t.year))].map((y) => (
                 <option key={y} value={y}>
                   {y}
                 </option>
@@ -99,7 +99,7 @@ const TestBank = (props) => {
         </div>
 
         {tests.length > 0 ? (
-          <div className="space-y-4">
+          <div className="flex flex-col space-y-3">
             {tests.map((t) => (
               <Link to={`/tests/${t.id}`} key={t.id}>
                 <div className="flex justify-between items-center border border-orange-200 border-2 rounded-lg p-4 hover:bg-orange-100 transition">

@@ -53,8 +53,10 @@ const query = `
     # If you have an leq, then you can put all the parts that depend on each other as one question
     # If you have mcqs or saqs that refer to other questions, put that relevant information in the current question so it stands alone.
     # DO NOT PUT CHOICES IN THE QUESTION!! If you have choices, no matter how the test pdf has it, make the question an mcq and put choices as strings in an array
-    # IF AND ONLY IF the test is Codebusters (it says on top of the pdf), then all questions should be an leq! Make sure to use spaces and newlines properly so that the cipher is legible like how it is on the test paper.
-    # IF AND ONLY IF the test is Codebusters (it says on top of the pdf), the answer should be the solution to the cipher, with proper spaces. Do not add newlines or anything like that to the answer key.
+    # IF AND ONLY IF the test is Codebusters (it says on top of the pdf), then all questions should be an leq! Make sure to use spaces and newlines properly as it is in the test. So put spaces between characters, words, and lines where appropriate so there's space for users to write in their answers or for me to put in boxes.
+    # IF AND ONLY IF the test is Codebusters, then make sure that if a question is a special bonus question you add special bonus to it, and if the question has points listed, put those points in the points attribute.
+    # IF AND ONLY IF the test is Codebusters, ensure that the question that might say (decode this) is separated from the cipher (the actual words) through new lines and such.
+    # IF AND ONLY IF the test is Codebusters (it says on top of the pdf), the answer should be the solution to the cipher, with proper spaces. Do not add newlines or anything like that to the answer key. That should just be the simple answer.
     # FINAL INSTRUCTION: Your response must be *only* a valid JSON array, starting with '[' and ending with ']'. No explanations, no formatting, no extra text.
 `;
 

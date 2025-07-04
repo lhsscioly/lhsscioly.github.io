@@ -96,15 +96,15 @@ const RandomTest = (props) => {
       const createdTest = await testService.createTest(testObject);
       if (createdTest) {
         const savedTest = await testService.updateTest(createdTest.id, {
-          assignees: teams
-            .filter((t) => t.event === test.event)
+          assignees: props.teams
+            .filter((t) => t.event === event)
             .map((t) => t.id),
         });
         props.setNotif("Test assigned successfully!");
         setTimeout(() => {
           props.setNotif(null);
         }, 5000);
-        props.setTests(tests.concat(savedTest));
+        props.setTests(props.tests.concat(savedTest));
       }
       setQuestions([]);
     } catch (error) {

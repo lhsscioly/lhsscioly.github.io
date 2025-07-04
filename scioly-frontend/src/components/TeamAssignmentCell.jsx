@@ -107,7 +107,7 @@ const TeamAssignmentCell = ({ event, users, teams, onSave, user }) => {
               setInputs((prev) => ({ ...prev, [teamType]: e.target.value }))
             }
             onKeyDown={(e) => e.key === "Enter" && handleAdd(teamType)}
-            placeholder="Add"
+            placeholder="Enter name and press enter"
             className="w-full mt-1 px-1 py-[2px] text-[10px] border border-orange-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
           />
         )}
