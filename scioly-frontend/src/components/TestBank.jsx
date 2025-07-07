@@ -13,7 +13,7 @@ const TestBank = (props) => {
         !t.random &&
         t.event.includes(eventFilter) &&
         t.school.includes(schoolFilter) &&
-        t.year.toString().includes(yearFilter)
+        t.year.toString().includes(yearFilter),
     );
     setTests(filtered);
   }, [eventFilter, schoolFilter, yearFilter, props.tests]);
@@ -43,7 +43,9 @@ const TestBank = (props) => {
               onChange={({ target }) => setEventFilter(target.value)}
               className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
-              <option key="all" value="">All</option>
+              <option key="all" value="">
+                All
+              </option>
               {props.events.map((e) => (
                 <option key={e.name} value={e.name}>
                   {e.name}
@@ -61,7 +63,9 @@ const TestBank = (props) => {
               onChange={({ target }) => setSchoolFilter(target.value)}
               className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
-              <option key="all" value="">All</option>
+              <option key="all" value="">
+                All
+              </option>
               {[...new Set(tests.map((t) => t.school))].map((s) => (
                 <option key={s} value={s}>
                   {s}
@@ -79,7 +83,9 @@ const TestBank = (props) => {
               onChange={({ target }) => setYearFilter(target.value)}
               className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
-              <option key="all" value="">All</option>
+              <option key="all" value="">
+                All
+              </option>
               {[...new Set(tests.map((t) => t.year))].map((y) => (
                 <option key={y} value={y}>
                   {y}

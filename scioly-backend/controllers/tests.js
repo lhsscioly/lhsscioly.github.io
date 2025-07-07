@@ -45,7 +45,9 @@ testsRouter.post("/", userExtractor, async (request, response) => {
     });
 
     const savedTest = await testObject.save();
-    const populatedTest = await Test.findById(savedTest._id).populate("questions");
+    const populatedTest = await Test.findById(savedTest._id).populate(
+      "questions",
+    );
 
     return response.status(201).json(populatedTest);
   } catch (error) {
@@ -71,7 +73,9 @@ testsRouter.put("/:id", userExtractor, async (request, response) => {
 
   try {
     const savedTest = await test.save();
-    const populatedTest = await Test.findById(savedTest._id).populate("questions");
+    const populatedTest = await Test.findById(savedTest._id).populate(
+      "questions",
+    );
 
     return response.status(201).json(populatedTest);
   } catch (error) {

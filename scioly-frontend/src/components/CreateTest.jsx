@@ -20,8 +20,6 @@ const CreateTest = (props) => {
   const [year, setYear] = useState("");
   const [event, setEvent] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  const [editIndex, setEditIndex] = useState(null);
-  const [editFields, setEditFields] = useState({});
   const [questionPDF, setQuestionPDF] = useState("");
   const [answerPDF, setAnswerPDF] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -91,20 +89,6 @@ const CreateTest = (props) => {
     setPoints(1);
     setChoices([]);
     setSelectedFile(null);
-  };
-
-  const updateQuestion = (index) => {
-    const updated = questions.map((q, i) => {
-      if (i === index) return { ...editFields };
-      if (editFields.group && q.group === editFields.group) {
-        return { ...q, selectedFile: editFields.selectedFile };
-      }
-      return q;
-    });
-
-    setQuestions(updated);
-    setEditIndex(null);
-    setEditFields({});
   };
 
   const createTest = async (e) => {

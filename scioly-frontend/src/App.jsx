@@ -339,7 +339,7 @@ function App() {
               </Link>
 
               {user && (
-                <div className="relative inline-block text-left group">
+                <div className="relative inline-block text-left group z-2">
                   <button className="text-sm font-medium text-orange-700 px-3 py-2 rounded-md hover:bg-orange-200 transition">
                     Meetings
                   </button>
