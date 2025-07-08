@@ -179,6 +179,10 @@ function App() {
           error.response.data.error === "expected `email` to be unique"
         ) {
           setError("Email already taken");
+        } else if (
+          error.response.data.error === "expected `name` to be unique"
+        ) {
+          setError("Name already taken. Please add your middle name/initial to your first name");
         } else {
           console.log(error.response.data.error);
         }
