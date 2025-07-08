@@ -39,7 +39,11 @@ app.use("/api/teams", teamsRouter);
 app.use("/api/answers", answersRouter);
 app.use("/api/submissions", submissionsRouter);
 
-app.get('*', (req, res) => {
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        return next();
+    }
+    
     res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
