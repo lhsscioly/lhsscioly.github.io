@@ -21,6 +21,8 @@ import loginService from "./services/login";
 import testService from "./services/tests";
 import teamService from "./services/teams";
 import questionService from "./services/questions";
+import answerService from "./services/answers";
+import submissionService from "./services/submissions";
 import { Routes, Route, Link, useNavigate, Router } from "react-router-dom";
 
 function App() {
@@ -44,6 +46,8 @@ function App() {
       testService.setToken(user.token);
       questionService.setToken(user.token);
       teamService.setToken(user.token);
+      answerService.setToken(user.token);
+      submissionService.setToken(user.token);
     }
   }, []);
 
@@ -135,6 +139,8 @@ function App() {
       testService.setToken(user.token);
       questionService.setToken(user.token);
       teamService.setToken(user.token);
+      answerService.setToken(user.token);
+      submissionService.setToken(user.token);
       navigate("/");
       console.log("Sign Up");
       setNotif(
@@ -193,6 +199,8 @@ function App() {
     testService.setToken("");
     questionService.setToken("");
     teamService.setToken("");
+    answerService.setToken("");
+    submissionService.setToken("");
     navigate("/signin");
     setNotif("Logged out successfully");
     setTimeout(() => {
@@ -210,6 +218,8 @@ function App() {
       testService.setToken(user.token);
       questionService.setToken(user.token);
       teamService.setToken(user.token);
+      answerService.setToken(user.token);
+      submissionService.setToken(user.token);
       console.log("Sign In");
       navigate("/");
       setNotif("Logged in successfully");
@@ -596,6 +606,9 @@ function App() {
                   user={user}
                   users={users}
                   teams={teams}
+                  setNotif={setNotif}
+                  setError={setError}
+                  setTests={setTests}
                 />
               }
             />

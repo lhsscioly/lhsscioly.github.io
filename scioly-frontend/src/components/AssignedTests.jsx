@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import answerService from "../services/answers";
+import submissionService from "../services/submissions";
 
-const AssignedTests = ({ tests, user, users }) => {
+const AssignedTests = ({ tests, user, users, teams }) => {
   const [assigned, setAssigned] = useState([]);
+  const [testStates, setTestStates] = useState({}); // Track which tests are started
 
   useEffect(() => {
     if (tests && user && users) {
@@ -18,6 +21,57 @@ const AssignedTests = ({ tests, user, users }) => {
       setAssigned(assignedTests);
     }
   }, [tests, user, users]);
+
+  // Check if tests have been started (have answers)
+  useEffect(() => {
+    const checkTestStates = async () => {
+      if (assigned.length > 0 && teams && user) {
+        // Ensure token is set before making API calls
+        const loggedUser = localStorage.getItem("loggedAppUser");
+        if (loggedUser) {
+          const userData = JSON.parse(loggedUser);
+          answerService.setToken(userData.token);
+          submissionService.setToken(userData.token);
+        }
+        
+        const states = {};
+        
+        for (const test of assigned) {
+          // Find user's team for this test
+          const userTeam = teams.find(team => 
+            team && 
+            team.event === test.event && 
+            team.students && 
+            Array.isArray(team.students) &&
+            team.students.some(student => student && student.id === user.id)
+          );
+          
+          if (userTeam) {
+            try {
+              // First check if submitted
+              const submissionCheck = await submissionService.checkSubmission(test.id, userTeam.id);
+              if (submissionCheck.submitted) {
+                states[test.id] = 'submitted';
+              } else {
+                // Check if started
+                const existingAnswers = await answerService.getByTestAndTeam(test.id, userTeam.id);
+                states[test.id] = existingAnswers ? 'started' : 'not_started';
+              }
+            } catch (error) {
+              // If we get 404, the test hasn't been started
+              states[test.id] = 'not_started';
+            }
+          } else {
+            states[test.id] = 'no_team';
+          }
+        }
+        
+        setTestStates(states);
+      }
+    };
+    
+    checkTestStates();
+  }, [assigned, teams, user]);
 
   if (!user) return null;
 
@@ -44,13 +98,22 @@ const AssignedTests = ({ tests, user, users }) => {
                       ? `Random Test - ${test.event}`
                       : `${test.school} ${test.year} - ${test.event}`}
                   </p>
+                  {testStates[test.id] === 'submitted' && (
+                    <p className="text-xs text-green-600 font-medium">Submitted</p>
+                  )}
                 </div>
-                <Link
-                  to={`/assigned/${test.id}`}
-                  className="text-sm text-orange-600 hover:underline"
-                >
-                  Take Test →
-                </Link>
+                {testStates[test.id] === 'submitted' ? (
+                  <span className="text-sm text-green-600 font-medium">
+                    ✓ Completed
+                  </span>
+                ) : (
+                  <Link
+                    to={`/assigned/${test.id}`}
+                    className="text-sm text-orange-600 hover:underline"
+                  >
+                    {testStates[test.id] === 'started' ? 'Continue Test' : 'Take Test'} →
+                  </Link>
+                )}
               </div>
             </li>
           ))}
