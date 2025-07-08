@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const path = require("path");
 const config = require("./utils/config");
 const logger = require("./utils/logger");
 const middleware = require("./utils/middleware");
@@ -29,6 +30,8 @@ mongoose
 app.use(express.json());
 app.use(middleware.tokenExtractor);
 app.use(express.static("dist"));
+
+app.use(express.static('dist'));
 app.use("/api/users", usersRouter);
 app.use("/api/login", loginRouter);
 app.use("/api/events", eventsRouter);
@@ -37,5 +40,9 @@ app.use("/api/tests", testsRouter);
 app.use("/api/teams", teamsRouter);
 app.use("/api/answers", answersRouter);
 app.use("/api/submissions", submissionsRouter);
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist/index.html'));
+});
 
 module.exports = app;
