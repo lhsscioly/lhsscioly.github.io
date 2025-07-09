@@ -12,6 +12,8 @@ import Lineup from "./components/Lineup";
 import AssignedTests from "./components/AssignedTests";
 import TakeTest from "./components/TakeTest";
 import UserSettings from "./components/UserSettings";
+import ReviewTests from "./components/ReviewTests";
+import Review from "./components/Review";
 import Reset from "./components/Reset";
 import Verify from "./components/Verify";
 import NotFound from "./components/NotFound";
@@ -381,6 +383,17 @@ function App() {
                           </Link>
                         </li>
                       )}
+                      {users.find((u) => u.id === user.id)?.teams?.length >
+                        0 && (
+                        <li>
+                          <Link
+                            to="/review"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                          >
+                            Review Tests
+                          </Link>
+                        </li>
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -616,7 +629,23 @@ function App() {
                 />
               }
             />
+            <Route
+              path="/review"
+              element={
+                <ReviewTests
+                  user={user}
+                  users={users}
+                  teams={teams}
+                />
+              }
+            />
             <Route path="*" element={<NotFound />} />
+            <Route
+              path="/review/:id"
+              element={
+                <Review />
+              }
+            />
           </Routes>
         </div>
       </div>

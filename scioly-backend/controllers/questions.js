@@ -3,7 +3,7 @@ const Question = require("../models/question");
 const { userExtractor } = require("../utils/middleware");
 
 questionsRouter.get("/", userExtractor, async (request, response) => {
-  if (!request.user || !request.user.admin) {
+  if (!request.user) {
     return response.status(401).json({ error: "unauthorized" });
   }
 

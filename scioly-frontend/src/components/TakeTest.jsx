@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
-import { useParams, useMatch, useNavigate } from "react-router-dom";
+import { useMatch, useNavigate, Link } from "react-router-dom";
 import { ReactSketchCanvas } from "react-sketch-canvas";
 import QuestionSidebar from "./QuestionSidebar";
 import QuestionView from "./QuestionView";
@@ -628,6 +628,12 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
           <p className="text-gray-600">
             Your answers have been saved and submitted for grading.
           </p>
+
+          <div className="pt-10">
+            <Link to={`/review`} className="text-white bg-orange-500 font-semibold text-md py-3 px-4 rounded-lg hover:bg-orange-600">
+              Review Test
+            </Link>
+          </div>
         </div>
       </div>
     );

@@ -32,10 +32,22 @@ const checkSubmission = async (testId, teamId) => {
   return response.data;
 };
 
+const getByTeam = async (teamId) => {
+  const response = await axios.get(`${baseUrl}/team/${teamId}`, getConfig());
+  return response.data;
+};
+
+const update = async (id, updatedSubmission) => {
+  const response = await axios.put(`${baseUrl}/${id}`, updatedSubmission, getConfig());
+  return response.data;
+};
+
 export default { 
   setToken, 
   create, 
   getAll, 
   getById,
-  checkSubmission
+  checkSubmission,
+  getByTeam,
+  update
 };

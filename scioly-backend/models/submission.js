@@ -41,6 +41,11 @@ const submissionSchema = mongoose.Schema({
     type: Number,
     default: 0,
   },
+  selfGradedScores: {
+    type: Map,
+    of: mongoose.Schema.Types.Mixed,
+    default: {},
+  },
 });
 
 submissionSchema.set("toJSON", {
