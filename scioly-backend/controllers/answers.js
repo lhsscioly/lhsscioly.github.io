@@ -64,7 +64,7 @@ answersRouter.get("/:testId/:teamId", userExtractor, async (request, response) =
       team: teamId,
       test: testId,
     }).populate("test", "event school year")
-      .populate("team", "name")
+      .populate("team", "name schoolYear")
       .populate("user", "username");
 
     if (!answers) {
@@ -222,7 +222,7 @@ answersRouter.get("/", userExtractor, async (request, response) => {
     const answers = await Answer.find({})
       .populate("user", "username email")
       .populate("test", "event school year")
-      .populate("team", "name");
+      .populate("team", "name schoolYear");
 
     return response.json(answers);
   } catch (error) {

@@ -57,18 +57,25 @@ const Test = ({ tests, user, teams, setError, setNotif, setTests }) => {
       savedTest = await testService.updateTest(test.id, {
         assignees: teams.filter((t) => t.event === test.event).map((t) => t.id),
       });
+      if (savedTest) {
+        setTests(tests.map((t) => (t.id === test.id ? savedTest : t)));
+        setNotif("Test assigned successfully!");
+        setTimeout(() => {
+          setNotif(null);
+        }, 5000);
+        navigate("/tests");
+      }
     } catch (error) {
       console.error("Error assigning test:", error);
-      return;
+      if (error.response && error.response.status === 409) {
+        setError(error.response.data.error);
+      } else {
+        setError("Failed to assign test. Please try again.");
+      }
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
     }
-    if (savedTest) {
-      setTests(tests.map((t) => (t.id === test.id ? savedTest : t)));
-    }
-    setNotif("Test assigned successfully!");
-    setTimeout(() => {
-      setNotif(null);
-    }, 5000);
-    navigate("/tests");
   };
 
   return (

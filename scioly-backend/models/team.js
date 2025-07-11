@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { getCurrentSchoolYear } = require("../utils/schoolYear");
 
 const teamSchema = mongoose.Schema({
   event: {
@@ -15,6 +16,11 @@ const teamSchema = mongoose.Schema({
       ref: "User",
     },
   ],
+  schoolYear: {
+    type: String,
+    required: true,
+    default: () => getCurrentSchoolYear(),
+  },
 });
 
 teamSchema.set("toJSON", {

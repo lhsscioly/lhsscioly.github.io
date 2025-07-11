@@ -1,6 +1,8 @@
 const testsRouter = require("express").Router();
 const Question = require("../models/question");
 const Test = require("../models/test");
+const Team = require("../models/team");
+const Submission = require("../models/submission");
 const { userExtractor } = require("../utils/middleware");
 
 testsRouter.get("/", userExtractor, async (request, response) => {
@@ -66,7 +68,34 @@ testsRouter.put("/:id", userExtractor, async (request, response) => {
 
   const test = await Test.findOne({ _id: id });
   if (!test) {
-    return response.status(404).json({ error: "question not found" });
+    return response.status(404).json({ error: "test not found" });
+  }
+
+  // Check if any of the teams already have submissions for this event
+  if (assignees && assignees.length > 0) {
+    try {
+      // Find all tests for this event
+      const testsForEvent = await Test.find({ 
+        event: test.event 
+      }, '_id');
+
+      const testIds = testsForEvent.map(t => t._id);
+
+      const existingSubmissions = await Submission.find({
+        team: { $in: assignees },
+        test: { $in: testIds }
+      }).populate('team', 'name');
+
+      if (existingSubmissions.length > 0) {
+        const teamNames = existingSubmissions.map(sub => sub.team.name).join(', ');
+        return response.status(409).json({ 
+          error: `Team(s) have already submitted tests for event ${test.event}: ${teamNames}` 
+        });
+      }
+    } catch (error) {
+      console.error("Error checking existing submissions:", error);
+      return response.status(500).json({ error: "internal server error" });
+    }
   }
 
   test.assignees = assignees;

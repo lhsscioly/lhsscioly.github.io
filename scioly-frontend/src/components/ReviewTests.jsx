@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import submissionService from "../services/submissions";
+import statisticsService from "../services/statistics";
 
 const ReviewTests = ({ user, users, teams }) => {
   const [submissions, setSubmissions] = useState([]);
+  const [userSubmissions, setUserSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,13 +16,15 @@ const ReviewTests = ({ user, users, teams }) => {
         if (loggedUser) {
           const userData = JSON.parse(loggedUser);
           submissionService.setToken(userData.token);
+          statisticsService.setToken(userData.token);
         }
 
         try {
           const currentUser = users.find((u) => u.id === user.id);
           const userTeams = currentUser?.teams || [];
+          const currentTeamIds = userTeams.map(team => team.id);
 
-          // Get submissions for all user's teams
+          // Get submissions for all user's current teams
           const allSubmissions = [];
           for (const team of userTeams) {
             try {
@@ -31,7 +35,19 @@ const ReviewTests = ({ user, users, teams }) => {
             }
           }
 
+          // Get all historical submissions for this user (across all teams, including deleted ones)
+          console.log("Attempting to fetch user submissions for user:", user.id);
+          const allUserSubmissions = await statisticsService.getUserSubmissions(user.id);
+          console.log("User submissions response:", allUserSubmissions);
+          
+          // Filter out current team submissions from historical submissions
+          const currentSubmissionIds = new Set(allSubmissions.map(s => s.id));
+          const historicalSubmissions = allUserSubmissions.filter(
+            s => !currentSubmissionIds.has(s.id)
+          );
+
           setSubmissions(allSubmissions);
+          setUserSubmissions(historicalSubmissions);
         } catch (error) {
           console.error("Error fetching submissions:", error);
         } finally {
@@ -152,6 +168,51 @@ const ReviewTests = ({ user, users, teams }) => {
               </ul>
             )}
           </div>
+
+          {/* Historical Submissions Section (from previous teams) */}
+          {userSubmissions.length > 0 && (
+            <div>
+              <h3 className="text-xl font-medium text-blue-700 mb-4 text-left border-b border-blue-200 pb-2">
+                Historical Tests ({userSubmissions.length})
+              </h3>
+              <p className="text-sm text-gray-600 mb-4 italic">
+                Tests you took in previous teams or school years
+              </p>
+              <ul className="space-y-3">
+                {userSubmissions.map((submission) => (
+                  <li
+                    key={submission.id}
+                    className="bg-blue-50 border border-blue-200 rounded-md px-4 py-3 shadow-sm"
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                      <div>
+                        <p className="text-sm text-blue-700 font-semibold">
+                          {submission.test?.random
+                            ? `Random Test - ${submission.test?.event}`
+                            : `${submission.test?.school} ${submission.test?.year} - ${submission.test?.event}`}
+                        </p>
+                        <p className="text-xs text-blue-600">
+                          Team: {submission.team?.name} • School Year: {submission.schoolYear}
+                          {submission.graded && (
+                            <span> • Score: {submission.totalScore}/{submission.maxScore}</span>
+                          )}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Submitted: {new Date(submission.submittedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Link
+                        to={`/review/${submission.id}`}
+                        className="text-sm text-blue-600 hover:underline font-medium"
+                      >
+                        View Submission →
+                      </Link>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </>
       )}
     </div>

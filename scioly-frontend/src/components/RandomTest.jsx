@@ -109,6 +109,14 @@ const RandomTest = (props) => {
       setQuestions([]);
     } catch (error) {
       console.error("Error assigning test:", error);
+      if (error.response && error.response.status === 409) {
+        props.setError(error.response.data.error);
+      } else {
+        props.setError("Failed to assign test. Please try again.");
+      }
+      setTimeout(() => {
+        props.setError(null);
+      }, 5000);
     }
   };
 
@@ -136,7 +144,7 @@ const RandomTest = (props) => {
         <div className="flex justify-between items-center">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-orange-700">
-              # of MCQs
+              # of Multiple Choice
             </label>
             <input
               type="number"
@@ -149,7 +157,7 @@ const RandomTest = (props) => {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-orange-700">
-              # of SAQs
+              # of Short Answer
             </label>
             <input
               type="number"
@@ -162,7 +170,7 @@ const RandomTest = (props) => {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-orange-700">
-              # of LEQs
+              # of Long Answer
             </label>
             <input
               type="number"

@@ -4,7 +4,15 @@ const QuestionSidebar = ({
   setCurrentIdx,
   bookmarked,
   answers,
+  drawings = {},
 }) => {
+  // Helper function to check if a question has content (answer or drawing)
+  const hasContent = (questionId) => {
+    const hasAnswer = answers[questionId];
+    const hasDrawing = drawings[questionId] && drawings[questionId].length > 0;
+    return hasAnswer || hasDrawing;
+  };
+
   return (
     <div className="p-3 space-y-2">
       {questions.map((q, idx) => (
@@ -15,7 +23,7 @@ const QuestionSidebar = ({
             idx === currentIdx
               ? "bg-orange-300 border-orange-600"
               : "bg-white border-orange-200"
-          } ${answers[q.id] ? "font-bold" : ""}`}
+          } ${hasContent(q.id) ? "font-bold" : ""}`}
         >
           Q{idx + 1}
           {bookmarked.includes(q.id) && (

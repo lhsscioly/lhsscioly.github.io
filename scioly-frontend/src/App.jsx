@@ -13,6 +13,8 @@ import AssignedTests from "./components/AssignedTests";
 import TakeTest from "./components/TakeTest";
 import UserSettings from "./components/UserSettings";
 import ReviewTests from "./components/ReviewTests";
+import Statistics from "./components/Statistics";
+import UserStatistics from "./components/UserStatistics";
 import Review from "./components/Review";
 import Reset from "./components/Reset";
 import Verify from "./components/Verify";
@@ -25,7 +27,8 @@ import teamService from "./services/teams";
 import questionService from "./services/questions";
 import answerService from "./services/answers";
 import submissionService from "./services/submissions";
-import { Routes, Route, Link, useNavigate, Router } from "react-router-dom";
+import statisticsService from "./services/statistics";
+import { Routes, Route, Link, useNavigate, Router, Navigate } from "react-router-dom";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -50,6 +53,7 @@ function App() {
       teamService.setToken(user.token);
       answerService.setToken(user.token);
       submissionService.setToken(user.token);
+      statisticsService.setToken(user.token);
     }
   }, []);
 
@@ -143,6 +147,7 @@ function App() {
       teamService.setToken(user.token);
       answerService.setToken(user.token);
       submissionService.setToken(user.token);
+      statisticsService.setToken(user.token);
       navigate("/");
       console.log("Sign Up");
       setNotif(
@@ -207,6 +212,7 @@ function App() {
     teamService.setToken("");
     answerService.setToken("");
     submissionService.setToken("");
+    statisticsService.setToken("");
     navigate("/signin");
     setNotif("Logged out successfully");
     setTimeout(() => {
@@ -226,6 +232,7 @@ function App() {
       teamService.setToken(user.token);
       answerService.setToken(user.token);
       submissionService.setToken(user.token);
+      statisticsService.setToken(user.token);
       console.log("Sign In");
       navigate("/");
       setNotif("Logged in successfully");
@@ -354,6 +361,14 @@ function App() {
                 Events
               </Link>
 
+              {user && user.admin && (
+                <div className="flex items-center space-x-2">
+                  <Link to='/statistics' className="text-sm font-medium text-orange-700 px-3 py-2 rounded-md hover:bg-orange-200 transition">
+                    Statistics
+                  </Link>
+                </div>
+              )}
+
               {user && (
                 <div className="relative inline-block text-left group z-2">
                   <button className="text-sm font-medium text-orange-700 px-3 py-2 rounded-md hover:bg-orange-200 transition">
@@ -394,6 +409,14 @@ function App() {
                           </Link>
                         </li>
                       )}
+                      <li>
+                        <Link
+                          to={`/statistics/${user.id}`}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                        >
+                          My Statistics
+                        </Link>
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -639,13 +662,21 @@ function App() {
                 />
               }
             />
-            <Route path="*" element={<NotFound />} />
             <Route
               path="/review/:id"
+              element={<Review />}
+            />
+            <Route
+              path="/statistics"
               element={
-                <Review />
+                user && user.admin ? <Statistics /> : <Navigate to="/" replace />
               }
             />
+            <Route
+              path="/statistics/:id"
+              element={<UserStatistics user={user} />}
+            />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </div>

@@ -82,7 +82,7 @@ const AssignedTests = ({ tests, user, users, teams }) => {
       </h2>
       {assigned.length === 0 ? (
         <p className="text-center text-gray-500 italic">
-          You don’t have any assigned tests yet.
+          You currently have no assigned tests.
         </p>
       ) : (
         <ul className="space-y-3">

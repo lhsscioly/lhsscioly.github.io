@@ -685,6 +685,7 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
               setCurrentIdx={handleQuestionNavigation}
               bookmarked={bookmarked}
               answers={answers}
+              drawings={drawingByQuestionId}
             />
           </div>
 

@@ -2,6 +2,8 @@ const submissionsRouter = require("express").Router();
 const Submission = require("../models/submission");
 const Answer = require("../models/answer");
 const Test = require("../models/test");
+const Team = require("../models/team");
+const User = require("../models/user");
 const { userExtractor } = require("../utils/middleware");
 
 // Helper function to calculate MCQ score
@@ -54,8 +56,9 @@ submissionsRouter.get("/", userExtractor, async (request, response) => {
     const submissions = await Submission.find({})
       .populate("answer")
       .populate("test", "event school year")
-      .populate("team", "name")
-      .populate("user", "username email");
+      .populate("team", "name schoolYear")
+      .populate("user", "username email")
+      .populate("users", "username email");
 
     response.json(submissions);
   } catch (error) {
@@ -80,8 +83,9 @@ submissionsRouter.get("/:id", userExtractor, async (request, response) => {
           model: "Question"
         }
       })
-      .populate("team", "name")
-      .populate("user", "username email");
+      .populate("team", "name schoolYear")
+      .populate("user", "username email")
+      .populate("users", "username email");
 
     if (!submission) {
       return response.status(404).json({ error: "submission not found" });
@@ -134,9 +138,26 @@ submissionsRouter.post("/", userExtractor, async (request, response) => {
       return response.status(404).json({ error: "test not found" });
     }
 
+    // Get the team to access students list and schoolYear
+    const team = await Team.findById(teamId).populate('students');
+    if (!team) {
+      return response.status(404).json({ error: "team not found" });
+    }
+
+    console.log('Team data:', {
+      id: team.id,
+      name: team.name,
+      schoolYear: team.schoolYear,
+      students: team.students?.length
+    });
+
     // Calculate MCQ score automatically
     const mcqScore = calculateMCQScore(test, answers.answers);
     const totalPossibleScore = calculateTotalPossibleScore(test);
+
+    // Ensure schoolYear is set - use team's schoolYear or current school year as fallback
+    const { getCurrentSchoolYear } = require("../utils/schoolYear");
+    const submissionSchoolYear = team.schoolYear || getCurrentSchoolYear();
 
     // Create submission with MCQ score
     const submission = new Submission({
@@ -144,6 +165,8 @@ submissionsRouter.post("/", userExtractor, async (request, response) => {
       test: testId,
       team: teamId,
       user: request.user.id,
+      users: team.students, // All team members who took the test
+      schoolYear: submissionSchoolYear, // School year from team with fallback
       finalTimeLeft,
       totalScore: mcqScore.score, // Start with MCQ score, SAQ/LEQ will be added later
       maxScore: totalPossibleScore,
@@ -153,8 +176,9 @@ submissionsRouter.post("/", userExtractor, async (request, response) => {
     const populatedSubmission = await Submission.findById(savedSubmission._id)
       .populate("answer")
       .populate("test", "event school year")
-      .populate("team", "name")
-      .populate("user", "username email");
+      .populate("team", "name schoolYear")
+      .populate("user", "username email")
+      .populate("users", "username email");
 
     response.status(201).json(populatedSubmission);
   } catch (error) {
@@ -175,8 +199,9 @@ submissionsRouter.get("/team/:teamId", userExtractor, async (request, response) 
     const submissions = await Submission.find({ team: teamId })
       .populate("answer")
       .populate("test", "event school year random")
-      .populate("team", "name")
+      .populate("team", "name schoolYear")
       .populate("user", "username email")
+      .populate("users", "username email")
       .sort({ submittedAt: -1 }); // Most recent first
 
     response.json(submissions);
@@ -239,12 +264,42 @@ submissionsRouter.put("/:id", userExtractor, async (request, response) => {
           model: "Question"
         }
       })
-      .populate("team", "name")
-      .populate("user", "username email");
+      .populate("team", "name schoolYear")
+      .populate("user", "username email")
+      .populate("users", "username email");
 
     response.json(populatedSubmission);
   } catch (error) {
     console.error("Error updating submission:", error);
+    return response.status(500).json({ error: "internal server error" });
+  }
+});
+
+// GET /api/submissions/user/:userId - Get submissions for a specific user across all teams
+submissionsRouter.get("/user/:userId", userExtractor, async (request, response) => {
+  if (!request.user) {
+    return response.status(401).json({ error: "unauthorized" });
+  }
+
+  const { userId } = request.params;
+
+  // Users can only access their own submissions unless they're admin
+  if (request.user.id !== userId && !request.user.admin) {
+    return response.status(403).json({ error: "not authorized to view other user's submissions" });
+  }
+
+  try {
+    const submissions = await Submission.find({ users: userId })
+      .populate("answer")
+      .populate("test", "event school year random")
+      .populate("team", "name schoolYear")
+      .populate("user", "username email")
+      .populate("users", "username email")
+      .sort({ submittedAt: -1 }); // Most recent first
+
+    response.json(submissions);
+  } catch (error) {
+    console.error("Error getting user submissions:", error);
     return response.status(500).json({ error: "internal server error" });
   }
 });

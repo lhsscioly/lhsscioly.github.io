@@ -21,6 +21,16 @@ const submissionSchema = mongoose.Schema({
     ref: "User",
     required: true,
   },
+  users: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  schoolYear: {
+    type: String,
+    required: true,
+  },
   submittedAt: {
     type: Date,
     default: Date.now,

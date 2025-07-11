@@ -31,13 +31,14 @@ teamsRouter.post("/", userExtractor, async (request, response) => {
   if (!request.user || !request.user.admin) {
     return response.status(401).json({ error: "unauthorized" });
   }
-  const { event, name, students } = request.body;
+  const { event, name, students, schoolYear } = request.body;
 
   try {
     const teamObject = new Team({
       event,
       name,
       students,
+      schoolYear,
     });
 
     const savedTeam = await teamObject.save();
@@ -60,7 +61,7 @@ teamsRouter.post("/", userExtractor, async (request, response) => {
 teamsRouter.put("/:id", userExtractor, async (request, response) => {
   const id = request.params.id;
 
-  const { students } = request.body;
+  const { students, schoolYear } = request.body;
 
   if (!request.user || !request.user.admin) {
     return response.status(401).json({ error: "unauthorized" });
@@ -82,6 +83,9 @@ teamsRouter.put("/:id", userExtractor, async (request, response) => {
   });
 
   team.students = students;
+  if (schoolYear !== undefined) {
+    team.schoolYear = schoolYear;
+  }
 
   const savedTeam = await team.save();
 

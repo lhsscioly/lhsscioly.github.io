@@ -54,8 +54,8 @@ const ReviewQuestionView = ({
   };
 
   return (
-    <div className="relative">
-      <div className="sticky top-0 bg-white z-40 flex justify-between items-center mb-3 pb-2 border-b border-orange-200">
+    <div className="relative padding-5">
+      <div className="sticky top-0 bg-white z-40 flex justify-between items-center mb-2 pb-2 border-b border-orange-200">
         <h4 className="text-lg font-semibold text-orange-700">
           Question {actualQuestionNumber || (idx + 1)} ({question.points} pts)
         </h4>
@@ -69,18 +69,18 @@ const ReviewQuestionView = ({
       </div>
 
       <div className="pt-2">
-        <p className="mb-4 text-orange-900">{question.question}</p>
+        <p className="mb-3 text-orange-900">{question.question}</p>
 
         {question.imageUrl && (
           <img
             src={question.imageUrl}
             alt="Question Visual"
-            className="mb-4 border rounded max-w-md"
+            className="mb-3 border rounded max-w-md"
           />
         )}
 
         {question.type === "mcq" && question.choices ? (
-          <div className="space-y-2 mb-4">
+          <div className="space-y-2 mb-3">
             {question.choices.map((choice, choiceIdx) => {
               const choiceTrimmed = choice.trim();
               const isUserChoice = userAnswers.some(ua => ua.trim() === choiceTrimmed);
@@ -113,12 +113,12 @@ const ReviewQuestionView = ({
             })}
           </div>
         ) : (isSAQ || isLEQ) ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Your Answer:
               </label>
-              <div className="w-full border border-gray-300 rounded p-2 bg-gray-50 min-h-[3rem]">
+              <div className="w-full border border-gray-300 rounded p-2 bg-gray-50 min-h-[2.5rem]">
                 {userAnswer || <em className="text-gray-500">No answer provided</em>}
               </div>
             </div>
@@ -127,13 +127,13 @@ const ReviewQuestionView = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Sample Answer:
               </label>
-              <div className="w-full border border-green-300 rounded p-2 bg-green-50 min-h-[3rem]">
+              <div className="w-full border border-green-300 rounded p-2 bg-green-50 min-h-[2.5rem]">
                 {question.answer}
               </div>
             </div>
 
             {!isGraded && (
-              <div className="bg-blue-50 border border-blue-200 rounded p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded p-3">
                 <h5 className="font-medium text-blue-800 mb-2">Self-Grade This Question</h5>
                 
                 {/* Auto-score indicator */}
@@ -185,7 +185,7 @@ const ReviewQuestionView = ({
             )}
 
             {isGraded && (selfGradedScore !== undefined || selfGradedComment) && (
-              <div className="bg-gray-50 border border-gray-200 rounded p-4">
+              <div className="bg-gray-50 border border-gray-200 rounded p-3">
                 <h5 className="font-medium text-gray-800 mb-2">Your Self-Assessment</h5>
                 <div className="space-y-1">
                   {selfGradedScore !== undefined && (
@@ -226,6 +226,7 @@ const Review = () => {
   const [error, setError] = useState('');
 
   const questionViewRef = useRef(null);
+  const reviewContainerRef = useRef(null);
   const canvasRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
@@ -414,14 +415,14 @@ const Review = () => {
     };
   };
 
-  const getFilteredQuestions = () => {
+  const getFilteredQuestions = (filterType = filter) => {
     if (!test?.questions) return [];
     
     return test.questions.filter(question => {
-      if (filter === 'all') return true;
-      if (filter === 'saq') return question.type === 'saq';
-      if (filter === 'leq') return question.type === 'leq';
-      if (filter === 'unanswered') {
+      if (filterType === 'all') return true;
+      if (filterType === 'saq') return question.type === 'saq';
+      if (filterType === 'leq') return question.type === 'leq';
+      if (filterType === 'unanswered') {
         if (question.type === 'mcq') {
           // MCQ is unanswered if no choice is selected
           const userAnswer = answers[question.id];
@@ -434,12 +435,20 @@ const Review = () => {
         }
         return false;
       }
-      if (filter === 'correct' || filter === 'incorrect') {
+      if (filterType === 'correct' || filterType === 'incorrect') {
         if (question.type !== 'mcq') return false;
         const isCorrect = checkMCQCorrect(question);
-        return filter === 'correct' ? isCorrect : !isCorrect;
+        return filterType === 'correct' ? isCorrect : !isCorrect;
       }
       return true;
+    });
+  };
+
+  const getAvailableFilters = () => {
+    const allFilters = ['all', 'correct', 'incorrect', 'unanswered', 'saq', 'leq'];
+    return allFilters.filter(filterOption => {
+      const questionsForFilter = getFilteredQuestions(filterOption);
+      return questionsForFilter.length > 0;
     });
   };
 
@@ -571,12 +580,34 @@ const Review = () => {
   const handleQuestionNavigation = (newIdx) => {
     setShowCanvas(false);
     setCurrentIdx(newIdx);
+    
+    // Scroll to top of question view
+    if (questionViewRef.current) {
+      questionViewRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // Scroll the main container into view for better navigation experience
+    if (reviewContainerRef.current) {
+      reviewContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   // Also hide canvas when filter changes
   useEffect(() => {
     setShowCanvas(false);
   }, [filter]);
+
+  // Auto-scroll to test container when component loads and data is ready
+  useEffect(() => {
+    if (!loading && submission && test && reviewContainerRef.current) {
+      setTimeout(() => {
+        reviewContainerRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }, 300);
+    }
+  }, [loading, submission, test]);
 
   const toggleCanvas = () => {
     const qid = filteredQuestions[currentIdx]?.id;
@@ -599,7 +630,7 @@ const Review = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-48">
         <div className="w-12 h-12 border-4 border-orange-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -607,7 +638,7 @@ const Review = () => {
 
   if (!submission || !test) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-48">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-800">Submission not found</h2>
           <button
@@ -623,7 +654,7 @@ const Review = () => {
 
   if (!test.questions || test.questions.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-48">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-800">No questions found for this test</h2>
           <p className="text-gray-600 mt-2">The test data may be incomplete.</p>
@@ -639,13 +670,14 @@ const Review = () => {
   }
 
   const filteredQuestions = getFilteredQuestions();
+  const availableFilters = getAvailableFilters();
   const currentQuestion = filteredQuestions[currentIdx];
   const totalScores = calculateTotalScore();
   const mcqScores = calculateMCQScore();
 
   if (!currentQuestion) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-48">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-800">No questions match the current filter</h2>
           <button
@@ -660,8 +692,8 @@ const Review = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-transparent py-5 px-4">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md py-6 px-8 space-y-6">
+    <div ref={reviewContainerRef} className="w-full min-h-screen bg-transparent py-4 px-4">
+      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md py-4 px-6 space-y-4">
         {/* Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-orange-800">
@@ -671,7 +703,7 @@ const Review = () => {
             {submission.graded ? (
               <div className="text-orange-600 font-semibold">
                 <div>Total Score: {totalScores.score}/{totalScores.total} ({((totalScores.score/totalScores.total)*100).toFixed(1)}%)</div>
-                <div className="text-sm">MCQ: {mcqScores.score}/{mcqScores.total} • SAQ/LEQ: {totalScores.saqLeqScore}/{totalScores.saqLeqTotal}</div>
+                <div className="text-sm">MCQ: {mcqScores.score}/{mcqScores.total} • FRQ: {totalScores.saqLeqScore}/{totalScores.saqLeqTotal}</div>
               </div>
             ) : (
               <div className="text-orange-600 font-semibold">
@@ -685,7 +717,7 @@ const Review = () => {
         {/* Filters */}
         <div className="flex flex-wrap gap-2 items-center">
           <span className="text-sm font-medium text-gray-700">Filter:</span>
-          {['all', 'correct', 'incorrect', 'unanswered', 'saq', 'leq'].map(filterOption => (
+          {availableFilters.map(filterOption => (
             <button
               key={filterOption}
               onClick={() => {
@@ -699,14 +731,14 @@ const Review = () => {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              {filterOption.toUpperCase()}
+              {filterOption === 'saq' ? 'Short Answer' : filterOption === 'leq' ? 'Long Answer' : filterOption === 'mcq' ? 'Multiple Choice' : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
             </button>
           ))}
         </div>
 
         {/* Error display */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <div className="flex items-center">
               <div className="text-red-800">
                 <p className="font-medium">Error</p>
@@ -718,11 +750,11 @@ const Review = () => {
 
         {/* Self-grading controls */}
         {!submission.graded && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="font-medium text-blue-800">Self-Grading Required</h3>
-                <p className="text-sm text-blue-600">Grade your SAQ and LEQ responses to complete your review.</p>
+                <p className="text-sm text-blue-600">Grade your free response questions to complete your review.</p>
               </div>
               <button
                 onClick={handleFinishGrading}
@@ -739,9 +771,10 @@ const Review = () => {
           </div>
         )}
 
-        <div className="flex space-x-4">
+        {/* Main Test View Container */}
+        <div className={`flex space-x-4 ${submission.graded ? 'h-[500px]' : 'h-[400px]'}`}>
           {/* Question Sidebar */}
-          <div className="w-64 h-[500px] overflow-y-auto pr-2 scrollbar-hide bg-gray-100 rounded-lg">
+          <div className="w-64 h-full overflow-y-auto pr-2 scrollbar-hide bg-gray-100 rounded-lg">
             <div className="sticky top-0 bg-gray-100 z-10 pb-2 pt-3">
               <h3 className="text-lg font-semibold text-orange-700 text-center">Questions</h3>
             </div>
@@ -751,13 +784,14 @@ const Review = () => {
               setCurrentIdx={handleQuestionNavigation}
               bookmarked={[]}
               answers={answers}
+              drawings={drawings}
             />
           </div>
 
           {/* Question View */}
           <div
             ref={questionViewRef}
-            className="flex-1 relative max-h-[500px] overflow-auto pr-2 scrollbar-hide"
+            className="flex-1 relative h-full overflow-auto pr-2 scrollbar-hide"
           >
             <ReviewQuestionView
               idx={test.questions.findIndex(q => q.id === currentQuestion.id)}

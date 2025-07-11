@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import TeamAssignmentCell from "./TeamAssignmentCell";
 import teamService from "../services/teams";
 
@@ -12,8 +12,10 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
 
   const arraysEqual = (a, b) => {
     if (a.length !== b.length) return false;
-    const sortedA = [...a].sort();
-    const sortedB = [...b].sort();
+    // Extract IDs if objects, otherwise use as-is
+    const extractIds = (arr) => arr.map(item => typeof item === 'object' ? item.id : item);
+    const sortedA = extractIds(a).sort();
+    const sortedB = extractIds(b).sort();
     return sortedA.every((val, idx) => val === sortedB[idx]);
   };
 
@@ -31,6 +33,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
     try {
       if (assignments.orange.length > 0) {
         if (!currVarsity) {
+          console.log("Creating new Varsity team for", eventName);
           const newTeam = await teamService.createTeam({
             event: eventName,
             name: "Varsity",
@@ -46,6 +49,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
           ) {
             return;
           }
+          console.log("Updating Varsity team for", eventName);
           const updatedTeam = await teamService.changeTeam(currVarsity.id, {
             students: assignments.orange.map((u) => u.id),
           });
@@ -55,6 +59,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
         }
       } else {
         if (currVarsity) {
+          console.log("Deleting Varsity team for", eventName);
           const deletedTeam = await teamService.deleteTeam(currVarsity.id);
           if (deletedTeam) {
             setTeams(teams.filter((t) => t.id !== deletedTeam.id));
@@ -64,6 +69,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
 
       if (assignments.black.length > 0) {
         if (!currJuniorVarsity) {
+          console.log("Creating new JV team for", eventName);
           const newTeam = await teamService.createTeam({
             event: eventName,
             name: "JV",
@@ -79,6 +85,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
           ) {
             return;
           }
+          console.log("Updating JV team for", eventName);
           const updatedTeam = await teamService.changeTeam(
             currJuniorVarsity.id,
             { students: assignments.black.map((u) => u.id) },
@@ -89,6 +96,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
         }
       } else {
         if (currJuniorVarsity) {
+          console.log("Deleting JV team for", eventName);
           const deletedTeam = await teamService.deleteTeam(
             currJuniorVarsity.id,
           );
@@ -100,6 +108,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
 
       if (assignments.white.length > 0) {
         if (!currJuniorVarsity2) {
+          console.log("Creating new JV2 team for", eventName);
           const newTeam = await teamService.createTeam({
             event: eventName,
             name: "JV2",
@@ -115,6 +124,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
           ) {
             return;
           }
+          console.log("Updating JV2 team for", eventName);
           const updatedTeam = await teamService.changeTeam(
             currJuniorVarsity2.id,
             { students: assignments.white.map((u) => u.id) },
@@ -127,6 +137,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
         }
       } else {
         if (currJuniorVarsity2) {
+          console.log("Deleting JV2 team for", eventName);
           const deletedTeam = await teamService.deleteTeam(
             currJuniorVarsity2.id,
           );
@@ -135,15 +146,23 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
           }
         }
       }
+      console.log("Team assignments saved successfully for", eventName);
     } catch (error) {
+      console.error("Full error object:", error);
       if (error.response && error.response.data) {
-        console.error(`Error: ${error.response.data.error}`);
+        console.error(`API Error: ${error.response.data.error}`);
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      } else if (error.message) {
+        console.error("Error message:", error.message);
       } else {
         console.error(
           "An unexpected error occurred while saving team assignments:",
           error,
         );
       }
+      // Re-throw the error so it can be caught by the calling component
+      throw error;
     }
   };
 
