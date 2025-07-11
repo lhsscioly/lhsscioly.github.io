@@ -19,7 +19,7 @@ const questionSchema = mongoose.Schema({
     required: true,
   },
   question: {
-    type: String || [String],
+    type: [String],
     required: true,
   },
   points: Number,

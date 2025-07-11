@@ -700,6 +700,7 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
               onChange={handleAnswerChange}
               onBookmark={toggleBookmark}
               isBookmarked={bookmarked.includes(currentQId)}
+              event={test.event}
             />
 
             {showCanvas && (

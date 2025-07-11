@@ -22,7 +22,7 @@ const query = `
     # And the things to match are the choices
     # If it's a question where you have a few items/facts with letters, and each following question requires you to pull from that answer bank, then make the question an mcq, with the answer bank as choices, and each question as its own question.
     # Choices can be null if the question is not multiple choice
-    # The question attribute is the question itself, so for example "What is blah"
+    # The question attribute is the question itself, so for example "What is blah". The question is an array, but unless for Codebusters, it is just an array with one string, which is the question itself.
     # The points are the points assigned to the question. Some tests will have this and others won't.
     # For tests that don't assign points, assign 1 point to each mcq and saq, and 5 for each leq.
     # For choices, don't label A, B, C (I'll do that myself). Choices is an array of strings, where the strings are the choices themselves without any other attachments.
@@ -41,21 +41,23 @@ const query = `
     # For leqs, put whatever the answer key for that test has in the answer, as a string, including directions to grade the problem if there are those.
     # Do not care about any images in the test. I will handle those later.
     # Only send the valid JSON array and no other words, because your response has to be JSON parsable
-    # To reiterate, send an array of objects that have the property, type, which is either mcq, saq, or leq, question, which is a string, points, which is a number, choices, which is an array of strings (only if the q is multiple choice), and answer, which is either a singuler string or a string with comma separated values
+    # To reiterate, send an array of objects that have the property, type, which is either mcq, saq, or leq, question, which is an array of strings, points, which is a number, choices, which is an array of strings (only if the q is multiple choice), and answer, which is either a singuler string or a string with comma separated values
     # In the case you are not given an answers pdf, or the answer might be unclear, you may generate the answer to the best of your knowledge. Ensure that none of the answers are anything such as "this will be determined later." For those type of "lab-based" questions, provide a range if you can from the best of your knowledge. 
     # ONLY GENERATE AN ANSWER WHEN IT IS CLEARLY NOT CLEAR OR NOT PRESENT. OTHERWISE DO NOT INTERFERE!
     # Do NOT generate your own questions!!
     # Make sure to return a **complete and valid JSON array**.
     # Your response should start with a left bracket [ and end with a right bracket ].
     # Once you end your triple quotes STOP!
-    # Every question should stand on its own without other questions. So if any question refers to a previous question, ensure that the relevant context is in this question without needing the previous question.
+    # Every question should stand on its own without other questions. So if any question refers to a previous question, ensure that the relevant context is in this question without needing the previous question. Some questions might refer to other questions. Our numbering and structure is different, so ensure that the question is self-contained, with relevant context from that other question given in this question without reference to the other question. 
+    # DO NOT REVEAL ANSWERS IN THE QUESTION!!
     # Do not have wording such as "previous question" or "next question" because the order might change, so make the question so it can stand without having done other questions.
     # If you have an leq, then you can put all the parts that depend on each other as one question
     # If you have mcqs or saqs that refer to other questions, put that relevant information in the current question so it stands alone.
     # DO NOT PUT CHOICES IN THE QUESTION!! If you have choices, no matter how the test pdf has it, make the question an mcq and put choices as strings in an array
-    # IF AND ONLY IF the test is Codebusters (it says on top of the pdf), then all questions should be an leq! Make sure to use spaces and newlines properly as it is in the test. So put spaces between characters, words, and lines where appropriate so there's space for users to write in their answers or for me to put in boxes.
+    # IF AND ONLY IF the test is Codebusters (it says on top of the pdf), then all questions should be an leq! 
+    # IF AND ONLY IF THE test is Codebusters, the questions attribute is NOT a string, but an Array of strings. In the first index goes the question, and in the second index goes the cipher. Make sure to use spaces properly as it is in the test.
     # IF AND ONLY IF the test is Codebusters, then make sure that if a question is a special bonus question you add special bonus to it, and if the question has points listed, put those points in the points attribute.
-    # IF AND ONLY IF the test is Codebusters, ensure that the question that might say (decode this) is separated from the cipher (the actual words) through new lines and such. Clearly separate the question from the cipher. 
+    # IF AND ONLY IF the test is Codebusters, ensure that the question that might say (decode this) is separated from the cipher (the actual words) through new lines and such. Clearly separate the question from the cipher as two elements of an array in the questions attribute! 
     # IF AND ONLY IF the test is Codebusters (it says on top of the pdf), the answer should be the solution to the cipher, with proper spaces. Do not add newlines or anything like that to the answer key. That should just be the simple answer.
     # FINAL INSTRUCTION: Your response must be *only* a valid JSON array, starting with '[' and ending with ']'. No explanations, no formatting, no extra text.
 `;

@@ -10,7 +10,7 @@ import QuestionItem from "./QuestionItem";
 const CreateTest = (props) => {
   const [open, setOpen] = useState(true);
   const [questions, setQuestions] = useState([]);
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState([""]);
   const [answer, setAnswer] = useState("");
   const [type, setType] = useState("");
   const [points, setPoints] = useState(1);
@@ -39,7 +39,7 @@ const CreateTest = (props) => {
         props.setError(null);
       }, 5000);
       return;
-    } else if (question.length === 0) {
+    } else if (question.every(part => !part.trim())) {
       props.setError("Question required!");
       window.scrollTo({ top: 0, behavior: "smooth" });
       setTimeout(() => {
@@ -83,7 +83,7 @@ const CreateTest = (props) => {
         selectedFile,
       }),
     );
-    setQuestion("");
+    setQuestion([""]);
     setAnswer("");
     setType("");
     setPoints(1);
@@ -165,7 +165,7 @@ const CreateTest = (props) => {
     props.setNotif("Added Test", addedTest);
     props.setTests(props.tests.concat(addedTest));
     setQuestions([]);
-    setQuestion("");
+    setQuestion([""]);
     setAnswer("");
     setType("");
     setPoints(1);
@@ -199,7 +199,12 @@ const CreateTest = (props) => {
 
     try {
       const questions = JSON.parse(cleaned);
-      setQuestions(questions);
+      // Normalize questions to ensure question field is always an array
+      const normalizedQuestions = questions.map(q => ({
+        ...q,
+        question: Array.isArray(q.question) ? q.question : [q.question]
+      }));
+      setQuestions(normalizedQuestions);
       setQuestionPDF(false);
       setAnswerPDF(false);
       props.setNotif("Questions loaded!");
@@ -298,12 +303,77 @@ const CreateTest = (props) => {
                   <label className="block text-sm font-medium text-orange-800 mb-1">
                     Question
                   </label>
-                  <input
-                    value={question}
-                    onChange={({ target }) => setQuestion(target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-400 focus:ring-2"
-                    placeholder="What is ..."
-                  />
+                  <div className="space-y-2">
+                    {question.map((part, partIndex) => (
+                      <div key={partIndex} className="flex gap-2 border border-gray-300 rounded-md p-2">
+                        <textarea
+                          value={part}
+                          onChange={(e) => {
+                            const newQuestion = [...question];
+                            newQuestion[partIndex] = e.target.value;
+                            setQuestion(newQuestion);
+                          }}
+                          placeholder={partIndex === 0 ? "Question text..." : "Additional part (e.g., cipher)..."}
+                          rows={3}
+                          className="flex-1 px-3 py-2 focus:ring-orange-400 focus:ring-2"
+                        />
+                        {question.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newQuestion = question.filter((_, idx) => idx !== partIndex);
+                              setQuestion(newQuestion);
+                            }}
+                            className="text-red-500 font-bold text-2xl rounded-md hover:text-red-600 self-start"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuestion([...question, ""]);
+                      }}
+                      className="text-orange-600 hover:underline text-sm"
+                    >
+                      + Add Part
+                    </button>
+                    {question.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuestion([question.join('\n\n')]);
+                        }}
+                        className="ml-4 text-amber-600 hover:underline text-sm"
+                      >
+                        Merge into Single Part
+                      </button>
+                    )}
+                    {question.length === 1 && question[0].includes('\n') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const parts = question[0].split('\n\n').filter(part => part.trim() !== '');
+                          if (parts.length > 1) {
+                            setQuestion(parts);
+                          } else {
+                            // If no double newlines found, try splitting by single newlines
+                            const singleParts = question[0].split('\n').filter(part => part.trim() !== '');
+                            if (singleParts.length > 1) {
+                              setQuestion(singleParts);
+                            } else {
+                              alert('No clear separation found. Use double line breaks (\\n\\n) or single line breaks to separate parts.');
+                            }
+                          }
+                        }}
+                        className="ml-4 text-blue-600 hover:underline text-sm"
+                      >
+                        Split into Parts
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div>

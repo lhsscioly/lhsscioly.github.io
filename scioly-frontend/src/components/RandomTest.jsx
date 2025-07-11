@@ -211,7 +211,12 @@ const RandomTest = (props) => {
                 key={index}
                 className="bg-orange-50 border border-orange-200 rounded-md p-4 text-gray-800 shadow-sm"
               >
-                Q{index + 1}: {question.question}
+                <span>Q{index + 1}: </span>
+                {question.question.map((part, partIndex) => (
+                  <span key={partIndex} className={partIndex > 0 ? "block mt-4" : "inline"}>
+                    {part}
+                  </span>
+                ))}
               </li>
             ))}
           </ul>

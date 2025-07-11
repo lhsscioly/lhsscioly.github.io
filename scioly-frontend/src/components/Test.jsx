@@ -114,7 +114,12 @@ const Test = ({ tests, user, teams, setError, setNotif, setTests }) => {
               className="border border-orange-300 rounded-md p-4 bg-orange-50 shadow-sm"
             >
               <div className="mb-3 font-medium text-orange-900">
-                Q{i + 1}: {q.question}
+                <span>Q{i + 1}: </span>
+                {q.question.map((part, index) => (
+                  <span key={index} className={index > 0 ? "block mt-4" : "inline"}>
+                    {part}
+                  </span>
+                ))}
               </div>
 
               {q.type === "mcq" &&

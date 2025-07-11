@@ -16,10 +16,45 @@ const ReviewQuestionView = ({
   showCanvas = false,
   actualQuestionNumber,
   drawings = {},
+  event,
 }) => {
   const isMultipleChoice = question.type === "mcq" && question.answer && question.answer.includes(", ");
   const isSAQ = question.type === "saq";
   const isLEQ = question.type === "leq";
+  
+  // Helper function to format cipher text with proper spacing using spans
+  const formatCipherText = (text) => {
+    // Check if this is a Baconian cipher by looking at the question text
+    const questionText = question.question[0] || '';
+    const isBaconian = questionText.toLowerCase().includes('baconian');
+    
+    if (isBaconian) {
+      // For Baconian cipher, group into 5-letter chunks
+      const cleanText = text.replace(/\s+/g, ''); // Remove existing spaces
+      const chunks = [];
+      for (let i = 0; i < cleanText.length; i += 5) {
+        chunks.push(cleanText.slice(i, i + 5));
+      }
+      return chunks.map((chunk, chunkIndex) => (
+        <span key={chunkIndex} className="inline-block mr-4">
+          {chunk}
+        </span>
+      ));
+    } else {
+      // For other ciphers, use word-based spacing
+      return text
+        .split(/\s+/) // Split by any whitespace into words
+        .map((word, wordIndex) => (
+          <span key={wordIndex} className="inline-block mr-4">
+            {word.split('').map((char, charIndex) => (
+              <span key={charIndex} className="inline-block mr-2">
+                {char}
+              </span>
+            ))}
+          </span>
+        ));
+    }
+  };
   
   // Convert letter answers to actual choice content
   const correctAnswers = question.answer && question.choices
@@ -69,7 +104,17 @@ const ReviewQuestionView = ({
       </div>
 
       <div className="pt-2">
-        <p className="mb-3 text-orange-900">{question.question}</p>
+        <div className="mb-3 text-orange-900">
+          {question.question.map((part, index) => (
+            <p key={index} className={index > 0 ? "mt-8" : ""} style={index > 0 && (question.event === "Codebusters" || event === "Codebusters") ? { lineHeight: '3', letterSpacing: '0.1em', backgroundColor: '#fef3c7', padding: '8px', borderRadius: '4px' } : {}}>
+              {index > 0 && (question.event === "Codebusters" || event === "Codebusters") ? 
+                // Format cipher text with proper spacing for Codebusters
+                formatCipherText(part)
+                : part
+              }
+            </p>
+          ))}
+        </div>
 
         {question.imageUrl && (
           <img
@@ -805,6 +850,7 @@ const Review = () => {
               showCanvas={showCanvas}
               actualQuestionNumber={test.questions.findIndex(q => q.id === currentQuestion.id) + 1}
               drawings={drawings}
+              event={test.event}
             />
 
             {/* Drawing Canvas (Read-only) */}

@@ -2,7 +2,12 @@ import { useState } from "react";
 
 const QuestionItem = ({ q, index, onEdit, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editFields, setEditFields] = useState({ ...q });
+  // Ensure question is always an array
+  const normalizedQ = {
+    ...q,
+    question: Array.isArray(q.question) ? q.question : [q.question]
+  };
+  const [editFields, setEditFields] = useState(normalizedQ);
 
   const handleSave = () => {
     setIsEditing(false);
@@ -14,16 +19,92 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
       {isEditing ? (
         <>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-orange-800 mb-1">
+            <label className="block text-sm font-medium text-orange-800 mb-2">
               Question
             </label>
-            <input
-              value={editFields.question}
-              onChange={(e) =>
-                setEditFields({ ...editFields, question: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-400 focus:ring-2"
-            />
+            <div className="space-y-2">
+              {editFields.question.map((part, partIndex) => (
+                <div key={partIndex} className="flex gap-2 border border-gray-300 rounded-md p-2">
+                  <textarea
+                    value={part}
+                    onChange={(e) => {
+                      const newQuestion = [...editFields.question];
+                      newQuestion[partIndex] = e.target.value;
+                      setEditFields({ ...editFields, question: newQuestion });
+                    }}
+                    placeholder={partIndex === 0 ? "Question text..." : "Additional part (e.g., cipher)..."}
+                    rows={3}
+                    className="flex-1 px-3 py-2 focus:ring-orange-400 focus:ring-2"
+                  />
+                  {editFields.question.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newQuestion = editFields.question.filter((_, idx) => idx !== partIndex);
+                        setEditFields({ ...editFields, question: newQuestion });
+                      }}
+                      className="text-red-500 font-bold text-2xl rounded-md hover:text-red-600 self-start"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setEditFields({
+                    ...editFields,
+                    question: [...editFields.question, ""]
+                  });
+                }}
+                className="text-orange-600 hover:underline text-sm"
+              >
+                + Add Part
+              </button>
+              {editFields.question.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditFields({
+                      ...editFields,
+                      question: [editFields.question.join('\n\n')]
+                    });
+                  }}
+                  className="ml-4 text-amber-600 hover:underline text-sm"
+                >
+                  Merge into Single Part
+                </button>
+              )}
+              {editFields.question.length === 1 && editFields.question[0].includes('\n') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const parts = editFields.question[0].split('\n\n').filter(part => part.trim() !== '');
+                    if (parts.length > 1) {
+                      setEditFields({
+                        ...editFields,
+                        question: parts
+                      });
+                    } else {
+                      // If no double newlines found, try splitting by single newlines
+                      const singleParts = editFields.question[0].split('\n').filter(part => part.trim() !== '');
+                      if (singleParts.length > 1) {
+                        setEditFields({
+                          ...editFields,
+                          question: singleParts
+                        });
+                      } else {
+                        alert('No clear separation found. Use double line breaks or single line breaks to separate parts.');
+                      }
+                    }
+                  }}
+                  className="ml-4 text-blue-600 hover:underline text-sm"
+                >
+                  Split into Parts
+                </button>
+              )}
+            </div>
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-orange-800 mb-1">
@@ -197,7 +278,12 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
         <>
           <div className="flex justify-between items-center mb-3">
             <div className="mb-2 font-medium text-orange-900">
-              Q{index + 1}: {q.question}
+              <span>Q{index + 1}: </span>
+              {normalizedQ.question.map((part, partIndex) => (
+                <span key={partIndex} className={partIndex > 0 ? "block mt-4" : "inline"}>
+                  {part}
+                </span>
+              ))}
             </div>
           </div>
           {q.type === "mcq" &&
