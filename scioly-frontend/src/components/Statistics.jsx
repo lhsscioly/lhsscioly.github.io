@@ -131,14 +131,6 @@ const Statistics = () => {
         )}
       </div>
 
-      {/* No Data Message */}
-      {overallStats && overallStats.availableSchoolYears.length === 0 && (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <p className="text-gray-500">No statistics available yet.</p>
-          <p className="text-sm text-gray-400 mt-2">Statistics will appear once students submit and complete graded tests.</p>
-        </div>
-      )}
-
       {/* Event Statistics */}
       {overallStats && overallStats.eventStatistics.length > 0 && (
         <div className="bg-white rounded-lg shadow-md mb-8 pb-6">
@@ -211,7 +203,7 @@ const Statistics = () => {
       {overallStats && overallStats.eventStatistics.length === 0 && (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <p className="text-orange-500">No statistics available for {selectedSchoolYear || 'the selected school year'}.</p>
-          <p className="text-sm text-orange-400 mt-2">Statistics are only shown for graded submissions.</p>
+          <p className="text-sm text-gray-900 mt-2">Statistics are only shown for graded submissions.</p>
         </div>
       )}
     </div>
