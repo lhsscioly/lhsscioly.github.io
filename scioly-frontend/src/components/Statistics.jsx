@@ -95,7 +95,7 @@ const Statistics = () => {
   };
 
   const handleUserSelect = (userId) => {
-    navigate(`/statistics/${userId}`);
+    navigate(`/statistics/${userId}`, { state: { from: '/statistics' } });
   };
 
   if (loading) {

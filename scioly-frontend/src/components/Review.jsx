@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ReactSketchCanvas } from "react-sketch-canvas";
 import QuestionSidebar from "./QuestionSidebar";
 import submissionService from '../services/submissions';
@@ -253,9 +253,10 @@ const ReviewQuestionView = ({
   );
 };
 
-const Review = () => {
+const Review = ({ user }) => {
   const { id: submissionId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [submission, setSubmission] = useState(null);
   const [test, setTest] = useState(null);
@@ -274,6 +275,16 @@ const Review = () => {
   const reviewContainerRef = useRef(null);
   const canvasRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  
+  // Check if user came from /review/all page
+  const [cameFromAllReviews, setCameFromAllReviews] = useState(false);
+  
+  useEffect(() => {
+    // Check if the user came from the /review/all page using navigation state
+    const stateFrom = location.state?.from;
+    const cameFromAll = stateFrom === '/review/all';
+    setCameFromAllReviews(cameFromAll);
+  }, [location]);
 
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -910,10 +921,16 @@ const Review = () => {
               Next
             </button>
             <button
-              onClick={() => navigate('/review')}
+              onClick={() => {
+                if (user && user.admin && cameFromAllReviews) {
+                  navigate('/review/all');
+                } else {
+                  navigate('/review');
+                }
+              }}
               className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded shadow transition"
             >
-              Back to Reviews
+              {user && user.admin && cameFromAllReviews ? 'Back to All Reviews' : 'Back to Reviews'}
             </button>
           </div>
         </div>

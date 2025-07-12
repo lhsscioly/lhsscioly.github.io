@@ -13,6 +13,7 @@ import AssignedTests from "./components/AssignedTests";
 import TakeTest from "./components/TakeTest";
 import UserSettings from "./components/UserSettings";
 import ReviewTests from "./components/ReviewTests";
+import AllTests from "./components/AllTests";
 import Statistics from "./components/Statistics";
 import UserStatistics from "./components/UserStatistics";
 import Review from "./components/Review";
@@ -362,10 +363,41 @@ function App() {
               </Link>
 
               {user && user.admin && (
-                <div className="flex items-center space-x-2">
-                  <Link to='/statistics' className="text-sm font-medium text-orange-700 px-3 py-2 rounded-md hover:bg-orange-200 transition">
-                    Statistics
-                  </Link>
+                <div className="relative inline-block text-left group">
+                  <button className="text-sm font-medium text-orange-700 px-3 py-2 rounded-md hover:bg-orange-200 transition">
+                    Tests
+                  </button>
+                  <div
+                    className="absolute left-0 top-full w-40 bg-orange-50 rounded-md shadow-lg 
+                    invisible group-hover:visible transition duration-100 pointer-events-none group-hover:pointer-events-auto"
+                  >
+                    <ul className="py-1">
+                      <li>
+                        <Link
+                          to="/tests"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                        >
+                          Test Bank
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/tests/create"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                        >
+                          Create Test
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/tests/random"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
+                        >
+                          Create Random Test
+                        </Link>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               )}
 
@@ -425,7 +457,7 @@ function App() {
               {user && user.admin && (
                 <div className="relative inline-block text-left group">
                   <button className="text-sm font-medium text-orange-700 px-3 py-2 rounded-md hover:bg-orange-200 transition">
-                    Tests
+                    Results
                   </button>
                   <div
                     className="absolute left-0 top-full w-40 bg-orange-50 rounded-md shadow-lg 
@@ -434,26 +466,18 @@ function App() {
                     <ul className="py-1">
                       <li>
                         <Link
-                          to="/tests"
+                          to="/statistics"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
                         >
-                          Test Bank
+                          Statistics
                         </Link>
                       </li>
                       <li>
                         <Link
-                          to="/tests/create"
+                          to="/review/all"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
                         >
-                          Create Test
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          to="/tests/random"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-200"
-                        >
-                          Create Random Test
+                          All Submissions
                         </Link>
                       </li>
                     </ul>
@@ -663,8 +687,12 @@ function App() {
               }
             />
             <Route
+              path="/review/all"
+              element={<AllTests user={user} />}
+            />
+            <Route
               path="/review/:id"
-              element={<Review />}
+              element={<Review user={user} />}
             />
             <Route
               path="/statistics"

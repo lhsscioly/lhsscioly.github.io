@@ -56,9 +56,16 @@ submissionsRouter.get("/", userExtractor, async (request, response) => {
     const submissions = await Submission.find({})
       .populate("answer")
       .populate("test", "event school year")
-      .populate("team", "name schoolYear")
-      .populate("user", "username email")
-      .populate("users", "username email");
+      .populate({
+        path: "team",
+        select: "name schoolYear students",
+        populate: {
+          path: "students",
+          select: "firstName lastName email"
+        }
+      })
+      .populate("user", "firstName lastName email")
+      .populate("users", "firstName lastName email");
 
     response.json(submissions);
   } catch (error) {
@@ -83,9 +90,16 @@ submissionsRouter.get("/:id", userExtractor, async (request, response) => {
           model: "Question"
         }
       })
-      .populate("team", "name schoolYear")
-      .populate("user", "username email")
-      .populate("users", "username email");
+      .populate({
+        path: "team",
+        select: "name schoolYear students",
+        populate: {
+          path: "students",
+          select: "firstName lastName email"
+        }
+      })
+      .populate("user", "firstName lastName email")
+      .populate("users", "firstName lastName email");
 
     if (!submission) {
       return response.status(404).json({ error: "submission not found" });
@@ -176,9 +190,16 @@ submissionsRouter.post("/", userExtractor, async (request, response) => {
     const populatedSubmission = await Submission.findById(savedSubmission._id)
       .populate("answer")
       .populate("test", "event school year")
-      .populate("team", "name schoolYear")
-      .populate("user", "username email")
-      .populate("users", "username email");
+      .populate({
+        path: "team",
+        select: "name schoolYear students",
+        populate: {
+          path: "students",
+          select: "firstName lastName email"
+        }
+      })
+      .populate("user", "firstName lastName email")
+      .populate("users", "firstName lastName email");
 
     response.status(201).json(populatedSubmission);
   } catch (error) {
@@ -199,9 +220,16 @@ submissionsRouter.get("/team/:teamId", userExtractor, async (request, response) 
     const submissions = await Submission.find({ team: teamId })
       .populate("answer")
       .populate("test", "event school year random")
-      .populate("team", "name schoolYear")
-      .populate("user", "username email")
-      .populate("users", "username email")
+      .populate({
+        path: "team",
+        select: "name schoolYear students",
+        populate: {
+          path: "students",
+          select: "firstName lastName email"
+        }
+      })
+      .populate("user", "firstName lastName email")
+      .populate("users", "firstName lastName email")
       .sort({ submittedAt: -1 }); // Most recent first
 
     response.json(submissions);
@@ -264,9 +292,16 @@ submissionsRouter.put("/:id", userExtractor, async (request, response) => {
           model: "Question"
         }
       })
-      .populate("team", "name schoolYear")
-      .populate("user", "username email")
-      .populate("users", "username email");
+      .populate({
+        path: "team",
+        select: "name schoolYear students",
+        populate: {
+          path: "students",
+          select: "firstName lastName email"
+        }
+      })
+      .populate("user", "firstName lastName email")
+      .populate("users", "firstName lastName email");
 
     response.json(populatedSubmission);
   } catch (error) {
@@ -292,9 +327,16 @@ submissionsRouter.get("/user/:userId", userExtractor, async (request, response) 
     const submissions = await Submission.find({ users: userId })
       .populate("answer")
       .populate("test", "event school year random")
-      .populate("team", "name schoolYear")
-      .populate("user", "username email")
-      .populate("users", "username email")
+      .populate({
+        path: "team",
+        select: "name schoolYear students",
+        populate: {
+          path: "students",
+          select: "firstName lastName email"
+        }
+      })
+      .populate("user", "firstName lastName email")
+      .populate("users", "firstName lastName email")
       .sort({ submittedAt: -1 }); // Most recent first
 
     response.json(submissions);

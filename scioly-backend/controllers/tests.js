@@ -10,7 +10,9 @@ testsRouter.get("/", userExtractor, async (request, response) => {
     return response.status(401).json({ error: "unauthorized" });
   }
 
-  const tests = await Test.find({}).populate("questions");
+  const tests = await Test.find({})
+    .populate("questions")
+    .populate("assignees", "name");
   return response.json(tests);
 });
 
@@ -21,7 +23,9 @@ testsRouter.get("/:id", userExtractor, async (request, response) => {
     return response.status(401).json({ error: "unauthorized" });
   }
 
-  const test = await Test.findOne({ _id: id }).populate("questions");
+  const test = await Test.findOne({ _id: id })
+    .populate("questions")
+    .populate("assignees", "name");
   if (test) {
     return response.json(test);
   } else {
@@ -47,9 +51,9 @@ testsRouter.post("/", userExtractor, async (request, response) => {
     });
 
     const savedTest = await testObject.save();
-    const populatedTest = await Test.findById(savedTest._id).populate(
-      "questions",
-    );
+    const populatedTest = await Test.findById(savedTest._id)
+      .populate("questions")
+      .populate("assignees", "name");
 
     return response.status(201).json(populatedTest);
   } catch (error) {
@@ -102,9 +106,9 @@ testsRouter.put("/:id", userExtractor, async (request, response) => {
 
   try {
     const savedTest = await test.save();
-    const populatedTest = await Test.findById(savedTest._id).populate(
-      "questions",
-    );
+    const populatedTest = await Test.findById(savedTest._id)
+      .populate("questions")
+      .populate("assignees", "name");
 
     return response.status(201).json(populatedTest);
   } catch (error) {

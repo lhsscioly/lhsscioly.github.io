@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import statisticsService from '../services/statistics';
 
 const UserStatistics = ({ user }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [studentStats, setStudentStats] = useState(null);
+  
+  // Check if user came from /statistics page
+  const [cameFromStatistics, setCameFromStatistics] = useState(false);
+  
+  useEffect(() => {
+    // Check if the user came from the /statistics page using navigation state
+    const stateFrom = location.state?.from;
+    const cameFromStats = stateFrom === '/statistics';
+    setCameFromStatistics(cameFromStats);
+  }, [location]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,7 +74,7 @@ const UserStatistics = ({ user }) => {
             {`Statistics for ${studentStats.student.firstName} ${studentStats.student.lastName}`}
           </h1>
         </div>
-        {user?.admin ? (
+        {user?.admin && cameFromStatistics ? (
           <div>
             <button
               onClick={() => navigate('/statistics')}
@@ -72,17 +83,16 @@ const UserStatistics = ({ user }) => {
               All Statistics →
             </button>
           </div>
-        ): (
+        ) : (
           <div>
-          <button
-            onClick={() => navigate('/review')}
-            className="px-4 py-2 text-md text-orange-500 font-bold rounded-lg hover:text-orange-600 hover:underline transition-colors"
-          >
-            Review Tests →
-          </button>
-        </div>
-        )
-        }
+            <button
+              onClick={() => navigate('/review')}
+              className="px-4 py-2 text-md text-orange-500 font-bold rounded-lg hover:text-orange-600 hover:underline transition-colors"
+            >
+              Review Tests →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Summary Cards */}
@@ -186,6 +196,24 @@ const UserStatistics = ({ user }) => {
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <p className="font-bold text-orange-500">No test submissions found.</p>
           <p className="font-semibold text-sm text-gray-400 mt-2">Statistics will appear once you submit and get graded tests.</p>
+        </div>
+      )}
+
+      {/* Bottom navigation button for admins */}
+      {user?.admin && (
+        <div className="fixed bottom-6 right-6">
+          <button
+            onClick={() => {
+              if (cameFromStatistics) {
+                navigate('/statistics');
+              } else {
+                navigate('/review');
+              }
+            }}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow-lg transition-colors"
+          >
+            {cameFromStatistics ? 'Back to All Statistics' : 'Back to Reviews'}
+          </button>
         </div>
       )}
     </div>
