@@ -485,8 +485,17 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
         // Remove team from test's assignees
         const currentTest = tests.find(t => String(t.id) === testId);
         if (currentTest) {
-          const updatedAssignees = currentTest.assignees.filter(assigneeId => assigneeId !== teamId);
-          await testService.updateTest(testId, { assignees: updatedAssignees });
+          const updatedAssignees = currentTest.assignees.filter(assignee => {
+  const assigneeId = typeof assignee === 'object' ? assignee.id : assignee;
+  return assigneeId !== teamId;
+});
+
+// Extract IDs for the API call (backend expects array of IDs)
+const assigneeIds = updatedAssignees.map(assignee => 
+  typeof assignee === 'object' ? assignee.id : assignee
+);
+
+await testService.updateTest(testId, { assignees: assigneeIds });
           
           // Update local tests state
           if (setTests) {

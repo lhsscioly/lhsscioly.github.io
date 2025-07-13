@@ -15,7 +15,11 @@ const AssignedTests = ({ tests, user, users, teams }) => {
       console.log(tests);
 
       const assignedTests = tests.filter((test) =>
-        test.assignees?.some((assignee) => userTeamIds.includes(assignee)),
+        test.assignees.some((assignee) => {
+          const assigneeId = typeof assignee === 'object' ? assignee.id : assignee;
+          const isAssigned = userTeamIds.includes(assigneeId);
+          return isAssigned;
+        })  
       );
 
       setAssigned(assignedTests);
