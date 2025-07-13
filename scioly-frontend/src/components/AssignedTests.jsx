@@ -16,10 +16,11 @@ const AssignedTests = ({ tests, user, users, teams }) => {
 
       const assignedTests = tests.filter((test) =>
         test.assignees.some((assignee) => {
-          const assigneeId = typeof assignee === 'object' ? assignee.id : assignee;
+          const assigneeId =
+            typeof assignee === "object" ? assignee.id : assignee;
           const isAssigned = userTeamIds.includes(assigneeId);
           return isAssigned;
-        })  
+        }),
       );
 
       setAssigned(assignedTests);
@@ -37,43 +38,52 @@ const AssignedTests = ({ tests, user, users, teams }) => {
           answerService.setToken(userData.token);
           submissionService.setToken(userData.token);
         }
-        
+
         const states = {};
-        
+
         for (const test of assigned) {
           // Find user's team for this test
-          const userTeam = teams.find(team => 
-            team && 
-            team.event === test.event && 
-            team.students && 
-            Array.isArray(team.students) &&
-            team.students.some(student => student && student.id === user.id)
+          const userTeam = teams.find(
+            (team) =>
+              team &&
+              team.event === test.event &&
+              team.students &&
+              Array.isArray(team.students) &&
+              team.students.some(
+                (student) => student && student.id === user.id,
+              ),
           );
-          
+
           if (userTeam) {
             try {
               // First check if submitted
-              const submissionCheck = await submissionService.checkSubmission(test.id, userTeam.id);
+              const submissionCheck = await submissionService.checkSubmission(
+                test.id,
+                userTeam.id,
+              );
               if (submissionCheck.submitted) {
-                states[test.id] = 'submitted';
+                states[test.id] = "submitted";
               } else {
                 // Check if started
-                const existingAnswers = await answerService.getByTestAndTeam(test.id, userTeam.id);
-                states[test.id] = existingAnswers ? 'started' : 'not_started';
+                const existingAnswers = await answerService.getByTestAndTeam(
+                  test.id,
+                  userTeam.id,
+                );
+                states[test.id] = existingAnswers ? "started" : "not_started";
               }
             } catch (error) {
               // If we get 404, the test hasn't been started
-              states[test.id] = 'not_started';
+              states[test.id] = "not_started";
             }
           } else {
-            states[test.id] = 'no_team';
+            states[test.id] = "no_team";
           }
         }
-        
+
         setTestStates(states);
       }
     };
-    
+
     checkTestStates();
   }, [assigned, teams, user]);
 
@@ -102,11 +112,13 @@ const AssignedTests = ({ tests, user, users, teams }) => {
                       ? `Random Test - ${test.event}`
                       : `${test.school} ${test.year} - ${test.event}`}
                   </p>
-                  {testStates[test.id] === 'submitted' && (
-                    <p className="text-xs text-green-600 font-medium">Submitted</p>
+                  {testStates[test.id] === "submitted" && (
+                    <p className="text-xs text-green-600 font-medium">
+                      Submitted
+                    </p>
                   )}
                 </div>
-                {testStates[test.id] === 'submitted' ? (
+                {testStates[test.id] === "submitted" ? (
                   <span className="text-sm text-green-600 font-medium">
                     ✓ Completed
                   </span>
@@ -115,7 +127,10 @@ const AssignedTests = ({ tests, user, users, teams }) => {
                     to={`/assigned/${test.id}`}
                     className="text-sm text-orange-600 hover:underline"
                   >
-                    {testStates[test.id] === 'started' ? 'Continue Test' : 'Take Test'} →
+                    {testStates[test.id] === "started"
+                      ? "Continue Test"
+                      : "Take Test"}{" "}
+                    →
                   </Link>
                 )}
               </div>

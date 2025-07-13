@@ -39,7 +39,7 @@ const CreateTest = (props) => {
         props.setError(null);
       }, 5000);
       return;
-    } else if (question.every(part => !part.trim())) {
+    } else if (question.every((part) => !part.trim())) {
       props.setError("Question required!");
       window.scrollTo({ top: 0, behavior: "smooth" });
       setTimeout(() => {
@@ -200,9 +200,9 @@ const CreateTest = (props) => {
     try {
       const questions = JSON.parse(cleaned);
       // Normalize questions to ensure question field is always an array
-      const normalizedQuestions = questions.map(q => ({
+      const normalizedQuestions = questions.map((q) => ({
         ...q,
-        question: Array.isArray(q.question) ? q.question : [q.question]
+        question: Array.isArray(q.question) ? q.question : [q.question],
       }));
       setQuestions(normalizedQuestions);
       setQuestionPDF(false);
@@ -305,7 +305,10 @@ const CreateTest = (props) => {
                   </label>
                   <div className="space-y-2">
                     {question.map((part, partIndex) => (
-                      <div key={partIndex} className="flex gap-2 border border-gray-300 rounded-md p-2">
+                      <div
+                        key={partIndex}
+                        className="flex gap-2 border border-gray-300 rounded-md p-2"
+                      >
                         <textarea
                           value={part}
                           onChange={(e) => {
@@ -313,7 +316,11 @@ const CreateTest = (props) => {
                             newQuestion[partIndex] = e.target.value;
                             setQuestion(newQuestion);
                           }}
-                          placeholder={partIndex === 0 ? "Question text..." : "Additional part (e.g., cipher)..."}
+                          placeholder={
+                            partIndex === 0
+                              ? "Question text..."
+                              : "Additional part (e.g., cipher)..."
+                          }
                           rows={3}
                           className="flex-1 px-3 py-2 focus:ring-orange-400 focus:ring-2"
                         />
@@ -321,7 +328,9 @@ const CreateTest = (props) => {
                           <button
                             type="button"
                             onClick={() => {
-                              const newQuestion = question.filter((_, idx) => idx !== partIndex);
+                              const newQuestion = question.filter(
+                                (_, idx) => idx !== partIndex,
+                              );
                               setQuestion(newQuestion);
                             }}
                             className="text-red-500 font-bold text-2xl rounded-md hover:text-red-600 self-start"
@@ -344,27 +353,33 @@ const CreateTest = (props) => {
                       <button
                         type="button"
                         onClick={() => {
-                          setQuestion([question.join('\n\n')]);
+                          setQuestion([question.join("\n\n")]);
                         }}
                         className="ml-4 text-amber-600 hover:underline text-sm"
                       >
                         Merge into Single Part
                       </button>
                     )}
-                    {question.length === 1 && question[0].includes('\n') && (
+                    {question.length === 1 && question[0].includes("\n") && (
                       <button
                         type="button"
                         onClick={() => {
-                          const parts = question[0].split('\n\n').filter(part => part.trim() !== '');
+                          const parts = question[0]
+                            .split("\n\n")
+                            .filter((part) => part.trim() !== "");
                           if (parts.length > 1) {
                             setQuestion(parts);
                           } else {
                             // If no double newlines found, try splitting by single newlines
-                            const singleParts = question[0].split('\n').filter(part => part.trim() !== '');
+                            const singleParts = question[0]
+                              .split("\n")
+                              .filter((part) => part.trim() !== "");
                             if (singleParts.length > 1) {
                               setQuestion(singleParts);
                             } else {
-                              alert('No clear separation found. Use double line breaks (\\n\\n) or single line breaks to separate parts.');
+                              alert(
+                                "No clear separation found. Use double line breaks (\\n\\n) or single line breaks to separate parts.",
+                              );
                             }
                           }
                         }}

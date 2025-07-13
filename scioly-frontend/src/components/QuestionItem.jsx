@@ -5,7 +5,7 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
   // Ensure question is always an array
   const normalizedQ = {
     ...q,
-    question: Array.isArray(q.question) ? q.question : [q.question]
+    question: Array.isArray(q.question) ? q.question : [q.question],
   };
   const [editFields, setEditFields] = useState(normalizedQ);
 
@@ -24,7 +24,10 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
             </label>
             <div className="space-y-2">
               {editFields.question.map((part, partIndex) => (
-                <div key={partIndex} className="flex gap-2 border border-gray-300 rounded-md p-2">
+                <div
+                  key={partIndex}
+                  className="flex gap-2 border border-gray-300 rounded-md p-2"
+                >
                   <textarea
                     value={part}
                     onChange={(e) => {
@@ -32,7 +35,11 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
                       newQuestion[partIndex] = e.target.value;
                       setEditFields({ ...editFields, question: newQuestion });
                     }}
-                    placeholder={partIndex === 0 ? "Question text..." : "Additional part (e.g., cipher)..."}
+                    placeholder={
+                      partIndex === 0
+                        ? "Question text..."
+                        : "Additional part (e.g., cipher)..."
+                    }
                     rows={3}
                     className="flex-1 px-3 py-2 focus:ring-orange-400 focus:ring-2"
                   />
@@ -40,7 +47,9 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
                     <button
                       type="button"
                       onClick={() => {
-                        const newQuestion = editFields.question.filter((_, idx) => idx !== partIndex);
+                        const newQuestion = editFields.question.filter(
+                          (_, idx) => idx !== partIndex,
+                        );
                         setEditFields({ ...editFields, question: newQuestion });
                       }}
                       className="text-red-500 font-bold text-2xl rounded-md hover:text-red-600 self-start"
@@ -55,7 +64,7 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
                 onClick={() => {
                   setEditFields({
                     ...editFields,
-                    question: [...editFields.question, ""]
+                    question: [...editFields.question, ""],
                   });
                 }}
                 className="text-orange-600 hover:underline text-sm"
@@ -68,7 +77,7 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
                   onClick={() => {
                     setEditFields({
                       ...editFields,
-                      question: [editFields.question.join('\n\n')]
+                      question: [editFields.question.join("\n\n")],
                     });
                   }}
                   className="ml-4 text-amber-600 hover:underline text-sm"
@@ -76,34 +85,41 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
                   Merge into Single Part
                 </button>
               )}
-              {editFields.question.length === 1 && editFields.question[0].includes('\n') && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const parts = editFields.question[0].split('\n\n').filter(part => part.trim() !== '');
-                    if (parts.length > 1) {
-                      setEditFields({
-                        ...editFields,
-                        question: parts
-                      });
-                    } else {
-                      // If no double newlines found, try splitting by single newlines
-                      const singleParts = editFields.question[0].split('\n').filter(part => part.trim() !== '');
-                      if (singleParts.length > 1) {
+              {editFields.question.length === 1 &&
+                editFields.question[0].includes("\n") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const parts = editFields.question[0]
+                        .split("\n\n")
+                        .filter((part) => part.trim() !== "");
+                      if (parts.length > 1) {
                         setEditFields({
                           ...editFields,
-                          question: singleParts
+                          question: parts,
                         });
                       } else {
-                        alert('No clear separation found. Use double line breaks or single line breaks to separate parts.');
+                        // If no double newlines found, try splitting by single newlines
+                        const singleParts = editFields.question[0]
+                          .split("\n")
+                          .filter((part) => part.trim() !== "");
+                        if (singleParts.length > 1) {
+                          setEditFields({
+                            ...editFields,
+                            question: singleParts,
+                          });
+                        } else {
+                          alert(
+                            "No clear separation found. Use double line breaks or single line breaks to separate parts.",
+                          );
+                        }
                       }
-                    }
-                  }}
-                  className="ml-4 text-blue-600 hover:underline text-sm"
-                >
-                  Split into Parts
-                </button>
-              )}
+                    }}
+                    className="ml-4 text-blue-600 hover:underline text-sm"
+                  >
+                    Split into Parts
+                  </button>
+                )}
             </div>
           </div>
           <div className="mb-4">
@@ -280,7 +296,10 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
             <div className="mb-2 font-medium text-orange-900">
               <span>Q{index + 1}: </span>
               {normalizedQ.question.map((part, partIndex) => (
-                <span key={partIndex} className={partIndex > 0 ? "block mt-4" : "inline"}>
+                <span
+                  key={partIndex}
+                  className={partIndex > 0 ? "block mt-4" : "inline"}
+                >
                   {part}
                 </span>
               ))}

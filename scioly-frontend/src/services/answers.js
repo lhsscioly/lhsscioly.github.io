@@ -18,17 +18,32 @@ const create = async (newAnswer) => {
 };
 
 const getByTestAndTeam = async (testId, teamId) => {
-  const response = await axios.get(`${baseUrl}/${testId}/${teamId}`, getConfig());
+  const response = await axios.get(
+    `${baseUrl}/${testId}/${teamId}`,
+    getConfig(),
+  );
   return response.data;
 };
 
 const update = async (testId, teamId, updatedAnswer) => {
-  const response = await axios.put(`${baseUrl}/${testId}/${teamId}`, updatedAnswer, getConfig());
+  const response = await axios.put(
+    `${baseUrl}/${testId}/${teamId}`,
+    updatedAnswer,
+    getConfig(),
+  );
   return response.data;
 };
 
-const updateSpecific = async (testId, teamId, { questionId, answer, drawing }) => {
-  const response = await axios.patch(`${baseUrl}/${testId}/${teamId}`, { questionId, answer, drawing }, getConfig());
+const updateSpecific = async (
+  testId,
+  teamId,
+  { questionId, answer, drawing },
+) => {
+  const response = await axios.patch(
+    `${baseUrl}/${testId}/${teamId}`,
+    { questionId, answer, drawing },
+    getConfig(),
+  );
   return response.data;
 };
 
@@ -37,11 +52,11 @@ const getAll = async () => {
   return response.data;
 };
 
-export default { 
-  setToken, 
-  create, 
-  getByTestAndTeam, 
-  update, 
+export default {
+  setToken,
+  create,
+  getByTestAndTeam,
+  update,
   updateSpecific,
-  getAll 
+  getAll,
 };

@@ -28,7 +28,10 @@ const getById = async (id) => {
 };
 
 const checkSubmission = async (testId, teamId) => {
-  const response = await axios.get(`${baseUrl}/check/${testId}/${teamId}`, getConfig());
+  const response = await axios.get(
+    `${baseUrl}/check/${testId}/${teamId}`,
+    getConfig(),
+  );
   return response.data;
 };
 
@@ -38,16 +41,20 @@ const getByTeam = async (teamId) => {
 };
 
 const update = async (id, updatedSubmission) => {
-  const response = await axios.put(`${baseUrl}/${id}`, updatedSubmission, getConfig());
+  const response = await axios.put(
+    `${baseUrl}/${id}`,
+    updatedSubmission,
+    getConfig(),
+  );
   return response.data;
 };
 
-export default { 
-  setToken, 
-  create, 
-  getAll, 
+export default {
+  setToken,
+  create,
+  getAll,
   getById,
   checkSubmission,
   getByTeam,
-  update
+  update,
 };

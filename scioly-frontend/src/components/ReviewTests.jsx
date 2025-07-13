@@ -22,13 +22,15 @@ const ReviewTests = ({ user, users, teams }) => {
         try {
           const currentUser = users.find((u) => u.id === user.id);
           const userTeams = currentUser?.teams || [];
-          const currentTeamIds = userTeams.map(team => team.id);
+          const currentTeamIds = userTeams.map((team) => team.id);
 
           // Get submissions for all user's current teams
           const allSubmissions = [];
           for (const team of userTeams) {
             try {
-              const teamSubmissions = await submissionService.getByTeam(team.id);
+              const teamSubmissions = await submissionService.getByTeam(
+                team.id,
+              );
               allSubmissions.push(...teamSubmissions);
             } catch (error) {
               console.log(`No submissions found for team ${team.id}`);
@@ -36,14 +38,19 @@ const ReviewTests = ({ user, users, teams }) => {
           }
 
           // Get all historical submissions for this user (across all teams, including deleted ones)
-          console.log("Attempting to fetch user submissions for user:", user.id);
-          const allUserSubmissions = await statisticsService.getUserSubmissions(user.id);
+          console.log(
+            "Attempting to fetch user submissions for user:",
+            user.id,
+          );
+          const allUserSubmissions = await statisticsService.getUserSubmissions(
+            user.id,
+          );
           console.log("User submissions response:", allUserSubmissions);
-          
+
           // Filter out current team submissions from historical submissions
-          const currentSubmissionIds = new Set(allSubmissions.map(s => s.id));
+          const currentSubmissionIds = new Set(allSubmissions.map((s) => s.id));
           const historicalSubmissions = allUserSubmissions.filter(
-            s => !currentSubmissionIds.has(s.id)
+            (s) => !currentSubmissionIds.has(s.id),
           );
 
           setSubmissions(allSubmissions);
@@ -62,8 +69,12 @@ const ReviewTests = ({ user, users, teams }) => {
   }, [user, users, teams]);
 
   // Separate graded and ungraded submissions
-  const gradedSubmissions = submissions.filter(submission => submission.graded);
-  const ungradedSubmissions = submissions.filter(submission => !submission.graded);
+  const gradedSubmissions = submissions.filter(
+    (submission) => submission.graded,
+  );
+  const ungradedSubmissions = submissions.filter(
+    (submission) => !submission.graded,
+  );
 
   if (!user) return null;
 
@@ -109,10 +120,14 @@ const ReviewTests = ({ user, users, teams }) => {
                             : `${submission.test?.school} ${submission.test?.year} - ${submission.test?.event}`}
                         </p>
                         <p className="text-xs text-green-600">
-                          Team: {submission.team?.name} • Score: {submission.totalScore}/{submission.maxScore}
+                          Team: {submission.team?.name} • Score:{" "}
+                          {submission.totalScore}/{submission.maxScore}
                         </p>
                         <p className="text-xs text-gray-500">
-                          Submitted: {new Date(submission.submittedAt).toLocaleDateString()}
+                          Submitted:{" "}
+                          {new Date(
+                            submission.submittedAt,
+                          ).toLocaleDateString()}
                         </p>
                       </div>
                       <Link
@@ -134,7 +149,9 @@ const ReviewTests = ({ user, users, teams }) => {
               Pending Grading ({ungradedSubmissions.length})
             </h3>
             {ungradedSubmissions.length === 0 ? (
-              <p className="text-gray-500 italic pl-4">No tests pending grading.</p>
+              <p className="text-gray-500 italic pl-4">
+                No tests pending grading.
+              </p>
             ) : (
               <ul className="space-y-3">
                 {ungradedSubmissions.map((submission) => (
@@ -153,7 +170,10 @@ const ReviewTests = ({ user, users, teams }) => {
                           Team: {submission.team?.name}
                         </p>
                         <p className="text-xs text-gray-500">
-                          Submitted: {new Date(submission.submittedAt).toLocaleDateString()}
+                          Submitted:{" "}
+                          {new Date(
+                            submission.submittedAt,
+                          ).toLocaleDateString()}
                         </p>
                       </div>
                       <Link
@@ -192,13 +212,21 @@ const ReviewTests = ({ user, users, teams }) => {
                             : `${submission.test?.school} ${submission.test?.year} - ${submission.test?.event}`}
                         </p>
                         <p className="text-xs text-blue-600">
-                          Team: {submission.team?.name} • School Year: {submission.schoolYear}
+                          Team: {submission.team?.name} • School Year:{" "}
+                          {submission.schoolYear}
                           {submission.graded && (
-                            <span> • Score: {submission.totalScore}/{submission.maxScore}</span>
+                            <span>
+                              {" "}
+                              • Score: {submission.totalScore}/
+                              {submission.maxScore}
+                            </span>
                           )}
                         </p>
                         <p className="text-xs text-gray-500">
-                          Submitted: {new Date(submission.submittedAt).toLocaleDateString()}
+                          Submitted:{" "}
+                          {new Date(
+                            submission.submittedAt,
+                          ).toLocaleDateString()}
                         </p>
                       </div>
                       <Link

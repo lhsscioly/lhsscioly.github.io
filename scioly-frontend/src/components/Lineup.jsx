@@ -13,7 +13,8 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
   const arraysEqual = (a, b) => {
     if (a.length !== b.length) return false;
     // Extract IDs if objects, otherwise use as-is
-    const extractIds = (arr) => arr.map(item => typeof item === 'object' ? item.id : item);
+    const extractIds = (arr) =>
+      arr.map((item) => (typeof item === "object" ? item.id : item));
     const sortedA = extractIds(a).sort();
     const sortedB = extractIds(b).sort();
     return sortedA.every((val, idx) => val === sortedB[idx]);

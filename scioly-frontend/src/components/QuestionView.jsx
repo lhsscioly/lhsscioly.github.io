@@ -14,12 +14,12 @@ const QuestionView = ({
   // Helper function to format cipher text with proper spacing using spans
   const formatCipherText = (text) => {
     // Check if this is a Baconian cipher by looking at the question text
-    const questionText = question.question[0] || '';
-    const isBaconian = questionText.toLowerCase().includes('baconian');
-    
+    const questionText = question.question[0] || "";
+    const isBaconian = questionText.toLowerCase().includes("baconian");
+
     if (isBaconian) {
       // For Baconian cipher, group into 5-letter chunks
-      const cleanText = text.replace(/\s+/g, ''); // Remove existing spaces
+      const cleanText = text.replace(/\s+/g, ""); // Remove existing spaces
       const chunks = [];
       for (let i = 0; i < cleanText.length; i += 5) {
         chunks.push(cleanText.slice(i, i + 5));
@@ -35,7 +35,7 @@ const QuestionView = ({
         .split(/\s+/) // Split by any whitespace into words
         .map((word, wordIndex) => (
           <span key={wordIndex} className="inline-block mr-4">
-            {word.split('').map((char, charIndex) => (
+            {word.split("").map((char, charIndex) => (
               <span key={charIndex} className="inline-block mr-2">
                 {char}
               </span>
@@ -70,12 +70,27 @@ const QuestionView = ({
       <div className="pt-2">
         <div className="mb-4 text-orange-900">
           {question.question.map((part, index) => (
-            <p key={index} className={index > 0 ? "mt-8" : ""} style={index > 0 && (question.event === "Codebusters" || event === "Codebusters") ? { lineHeight: '3', letterSpacing: '0.1em', backgroundColor: '#fef3c7', padding: '8px', borderRadius: '4px' } : {}}>
-              {index > 0 && (question.event === "Codebusters" || event === "Codebusters") ? 
-                // Format cipher text with proper spacing for Codebusters
-                formatCipherText(part)
-                : part
+            <p
+              key={index}
+              className={index > 0 ? "mt-8" : ""}
+              style={
+                index > 0 &&
+                (question.event === "Codebusters" || event === "Codebusters")
+                  ? {
+                      lineHeight: "3",
+                      letterSpacing: "0.1em",
+                      backgroundColor: "#fef3c7",
+                      padding: "8px",
+                      borderRadius: "4px",
+                    }
+                  : {}
               }
+            >
+              {index > 0 &&
+              (question.event === "Codebusters" || event === "Codebusters")
+                ? // Format cipher text with proper spacing for Codebusters
+                  formatCipherText(part)
+                : part}
             </p>
           ))}
         </div>

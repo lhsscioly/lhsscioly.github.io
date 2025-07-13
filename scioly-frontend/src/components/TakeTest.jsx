@@ -3,89 +3,105 @@ import { useMatch, useNavigate, Link } from "react-router-dom";
 import { ReactSketchCanvas } from "react-sketch-canvas";
 import QuestionSidebar from "./QuestionSidebar";
 import QuestionView from "./QuestionView";
-import answerService from '../services/answers';
-import submissionService from '../services/submissions';
-import testService from '../services/tests';
+import answerService from "../services/answers";
+import submissionService from "../services/submissions";
+import testService from "../services/tests";
 
 // Helper function to determine if server value should be prioritized
-const shouldPrioritizeServerValue = (currentValue, serverValue, timeSinceServerUpdate) => {
+const shouldPrioritizeServerValue = (
+  currentValue,
+  serverValue,
+  timeSinceServerUpdate,
+) => {
   // If server value is very recent (less than 1 second), prioritize it
   if (timeSinceServerUpdate < 1000) {
     return true;
   }
-  
+
   // If both are empty or both are the same, no change needed
   if (currentValue === serverValue) {
     return false;
   }
-  
+
   // Helper function to check if a value is "empty"
   const isEmpty = (value) => {
     if (value === null || value === undefined) return true;
-    if (typeof value === 'string') return value.trim() === '';
-    if (typeof value === 'number') return false; // Numbers are never considered empty
-    if (typeof value === 'boolean') return false; // Booleans are never considered empty
+    if (typeof value === "string") return value.trim() === "";
+    if (typeof value === "number") return false; // Numbers are never considered empty
+    if (typeof value === "boolean") return false; // Booleans are never considered empty
     if (Array.isArray(value)) return value.length === 0;
     return false;
   };
-  
+
   // If current is empty and server has content, use server
   if (isEmpty(currentValue) && !isEmpty(serverValue)) {
     return true;
   }
-  
+
   // If server is empty and current has content, keep current
   if (isEmpty(serverValue) && !isEmpty(currentValue)) {
     return false;
   }
-  
+
   // If both have content, prioritize server if it's recent (less than 1.5 seconds)
   if (timeSinceServerUpdate < 1500) {
     return true;
   }
-  
+
   return false;
 };
 
 // Helper function to determine if server drawing should be prioritized
-const shouldPrioritizeServerDrawing = (currentDrawing, serverDrawing, timeSinceServerUpdate) => {
+const shouldPrioritizeServerDrawing = (
+  currentDrawing,
+  serverDrawing,
+  timeSinceServerUpdate,
+) => {
   // If server drawing is very recent (less than 1 second), prioritize it
   if (timeSinceServerUpdate < 1000) {
     return true;
   }
-  
+
   // If both are empty or both are the same, no change needed
   if (JSON.stringify(currentDrawing) === JSON.stringify(serverDrawing)) {
     return false;
   }
-  
+
   // Helper function to check if a drawing is "empty"
   const isEmptyDrawing = (drawing) => {
     if (!drawing) return true;
     if (Array.isArray(drawing)) return drawing.length === 0;
-    if (typeof drawing === 'object') return Object.keys(drawing).length === 0;
+    if (typeof drawing === "object") return Object.keys(drawing).length === 0;
     return false;
   };
-  
+
   // If current is empty and server has content, use server
   if (isEmptyDrawing(currentDrawing) && !isEmptyDrawing(serverDrawing)) {
     return true;
   }
-  
+
   // If server is empty and current has content, keep current
   if (isEmptyDrawing(serverDrawing) && !isEmptyDrawing(currentDrawing)) {
     return false;
   }
-  
+
   // If both have content, prioritize server if it's recent (less than 1.5 seconds)
   if (timeSinceServerUpdate < 1500) {
     return true;
   }
-  
+
   return false;
 };
 
-const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) => {
+const TakeTest = ({
+  tests = [],
+  user,
+  users,
+  teams = [],
+  setNotif,
+  setError,
+  setTests,
+}) => {
   const match = useMatch("/assigned/:id");
   const testId = match?.params?.id;
   const navigate = useNavigate();
@@ -114,7 +130,7 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
-    if (tests && testId) {
+    if (tests && Array.isArray(tests) && testId) {
       const found = tests.find((t) => String(t.id) === testId);
       setTest(found || null);
     }
@@ -123,12 +139,13 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
   // Get user's team for this test
   useEffect(() => {
     if (user && test && teams && Array.isArray(teams)) {
-      const userTeam = teams.find(team => 
-        team && 
-        team.event === test.event && 
-        team.students && 
-        Array.isArray(team.students) &&
-        team.students.some(student => student && student.id === user.id)
+      const userTeam = teams.find(
+        (team) =>
+          team &&
+          team.event === test.event &&
+          team.students &&
+          Array.isArray(team.students) &&
+          team.students.some((student) => student && student.id === user.id),
       );
       if (userTeam) {
         setTeamId(userTeam.id);
@@ -147,23 +164,29 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
           answerService.setToken(userData.token);
           submissionService.setToken(userData.token);
         }
-        
+
         try {
           // First check if test has already been submitted
-          const submissionCheck = await submissionService.checkSubmission(testId, teamId);
-          
+          const submissionCheck = await submissionService.checkSubmission(
+            testId,
+            teamId,
+          );
+
           if (submissionCheck.submitted) {
             // Test already submitted, redirect back with error
             if (setError) {
               setError("This test has already been submitted.");
               setTimeout(() => setError(null), 5000);
             }
-            navigate('/assigned');
+            navigate("/assigned");
             return;
           }
-          
+
           // If not submitted, check for existing answers
-          const existingAnswers = await answerService.getByTestAndTeam(testId, teamId);
+          const existingAnswers = await answerService.getByTestAndTeam(
+            testId,
+            teamId,
+          );
           if (existingAnswers) {
             setAnswers(existingAnswers.answers || {});
             setDrawingByQuestionId(existingAnswers.drawings || {});
@@ -211,7 +234,10 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
 
   useEffect(() => {
     if (testContainerRef.current) {
-      testContainerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      testContainerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }, [started, currentIdx]);
 
@@ -225,9 +251,13 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
           const userData = JSON.parse(loggedUser);
           answerService.setToken(userData.token);
         }
-        
+
         try {
-          const response = await answerService.updateSpecific(testId, teamId, pendingSync);
+          const response = await answerService.updateSpecific(
+            testId,
+            teamId,
+            pendingSync,
+          );
           setPendingSync(null);
           // Update timeLeft from server response
           setTimeLeft(response.timeLeft);
@@ -241,7 +271,7 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
                 teamId,
                 answers: answers,
                 drawings: drawingByQuestionId,
-                timeLeft: 50 * 60
+                timeLeft: 50 * 60,
               });
               setPendingSync(null);
             } catch (createError) {
@@ -256,7 +286,15 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
       const syncTimer = setTimeout(syncSpecificAnswer, 500); // Debounce for 0.5 seconds (reduced from 2 seconds)
       return () => clearTimeout(syncTimer);
     }
-  }, [pendingSync, testId, teamId, started, answers, drawingByQuestionId, submitted]);
+  }, [
+    pendingSync,
+    testId,
+    teamId,
+    started,
+    answers,
+    drawingByQuestionId,
+    submitted,
+  ]);
 
   // Sync from backend every 5 seconds to get updates from other users
   useEffect(() => {
@@ -267,7 +305,7 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
         if (timeSinceLastActivity < 1000) {
           return;
         }
-        
+
         // Ensure token is set before making API calls
         const loggedUser = localStorage.getItem("loggedAppUser");
         if (loggedUser) {
@@ -275,20 +313,23 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
           answerService.setToken(userData.token);
           submissionService.setToken(userData.token);
         }
-        
+
         try {
           const response = await answerService.getByTestAndTeam(testId, teamId);
           if (response) {
             // Check if test has been submitted by checking submissions
             try {
-              const submissionCheck = await submissionService.checkSubmission(testId, teamId);
-              
+              const submissionCheck = await submissionService.checkSubmission(
+                testId,
+                teamId,
+              );
+
               if (submissionCheck.submitted && !submitted) {
                 // Another user submitted the test
                 setSubmitted(true);
                 setStarted(false);
                 clearTimeout(timerRef.current);
-                
+
                 if (setNotif) {
                   setNotif("Test has been submitted by another team member!");
                   setTimeout(() => setNotif(null), 5000);
@@ -296,64 +337,99 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
                 return; // Don't continue with regular sync
               }
             } catch (submissionError) {
-              console.log("Could not check submission status:", submissionError);
+              console.log(
+                "Could not check submission status:",
+                submissionError,
+              );
             }
-            
+
             // Smart merge based on timestamps and content
             const serverAnswers = response.answers || {};
             const serverDrawings = response.drawings || {};
             const serverAnswerTimestamps = response.answerTimestamps || {};
             const serverDrawingTimestamps = response.drawingTimestamps || {};
-            
+
             // Update answers with smart merging
-            setAnswers(prevAnswers => {
+            setAnswers((prevAnswers) => {
               const updatedAnswers = { ...prevAnswers };
               let hasChanges = false;
-              
-              for (const [questionId, serverAnswer] of Object.entries(serverAnswers)) {
+
+              for (const [questionId, serverAnswer] of Object.entries(
+                serverAnswers,
+              )) {
                 const currentAnswer = prevAnswers[questionId];
-                const serverTimestamp = serverAnswerTimestamps[questionId] ? new Date(serverAnswerTimestamps[questionId]) : new Date(0);
-                const timeSinceServerUpdate = Date.now() - serverTimestamp.getTime();
-                
+                const serverTimestamp = serverAnswerTimestamps[questionId]
+                  ? new Date(serverAnswerTimestamps[questionId])
+                  : new Date(0);
+                const timeSinceServerUpdate =
+                  Date.now() - serverTimestamp.getTime();
+
                 // Don't overwrite if user has been active on this question in the last 2 seconds
-                if (timeSinceServerUpdate < 2000 && currentAnswer !== serverAnswer) {
+                if (
+                  timeSinceServerUpdate < 2000 &&
+                  currentAnswer !== serverAnswer
+                ) {
                   // Smart merge: prioritize non-empty content, then most recent
-                  const shouldUseServer = shouldPrioritizeServerValue(currentAnswer, serverAnswer, timeSinceServerUpdate);
+                  const shouldUseServer = shouldPrioritizeServerValue(
+                    currentAnswer,
+                    serverAnswer,
+                    timeSinceServerUpdate,
+                  );
                   if (shouldUseServer) {
                     updatedAnswers[questionId] = serverAnswer;
                     hasChanges = true;
                   }
-                } else if (currentAnswer !== serverAnswer && timeSinceServerUpdate >= 2000) {
+                } else if (
+                  currentAnswer !== serverAnswer &&
+                  timeSinceServerUpdate >= 2000
+                ) {
                   // Use server value if it's older than 2 seconds (not actively being edited)
                   updatedAnswers[questionId] = serverAnswer;
                   hasChanges = true;
                 }
               }
-              
+
               return hasChanges ? updatedAnswers : prevAnswers;
             });
-            
+
             // Update drawings with smart merging
-            setDrawingByQuestionId(prevDrawings => {
+            setDrawingByQuestionId((prevDrawings) => {
               const updatedDrawings = { ...prevDrawings };
               let hasChanges = false;
-              
-              for (const [questionId, serverDrawing] of Object.entries(serverDrawings)) {
+
+              for (const [questionId, serverDrawing] of Object.entries(
+                serverDrawings,
+              )) {
                 const currentDrawing = prevDrawings[questionId];
-                const serverTimestamp = serverDrawingTimestamps[questionId] ? new Date(serverDrawingTimestamps[questionId]) : new Date(0);
-                const timeSinceServerUpdate = Date.now() - serverTimestamp.getTime();
-                
+                const serverTimestamp = serverDrawingTimestamps[questionId]
+                  ? new Date(serverDrawingTimestamps[questionId])
+                  : new Date(0);
+                const timeSinceServerUpdate =
+                  Date.now() - serverTimestamp.getTime();
+
                 // Don't overwrite if user has been active on this question in the last 2 seconds
-                if (timeSinceServerUpdate < 2000 && JSON.stringify(currentDrawing) !== JSON.stringify(serverDrawing)) {
+                if (
+                  timeSinceServerUpdate < 2000 &&
+                  JSON.stringify(currentDrawing) !==
+                    JSON.stringify(serverDrawing)
+                ) {
                   // Smart merge: prioritize non-empty content, then most recent
-                  const shouldUseServer = shouldPrioritizeServerDrawing(currentDrawing, serverDrawing, timeSinceServerUpdate);
+                  const shouldUseServer = shouldPrioritizeServerDrawing(
+                    currentDrawing,
+                    serverDrawing,
+                    timeSinceServerUpdate,
+                  );
                   if (shouldUseServer) {
                     updatedDrawings[questionId] = serverDrawing;
                     hasChanges = true;
-                    
+
                     // Reload canvas if this is the current question
                     const currentQuestionId = test?.questions?.[currentIdx]?.id;
-                    if (showCanvas && currentQuestionId === questionId && canvasRef.current) {
+                    if (
+                      showCanvas &&
+                      currentQuestionId === questionId &&
+                      canvasRef.current
+                    ) {
                       setTimeout(() => {
                         if (serverDrawing && serverDrawing.length > 0) {
                           canvasRef.current.loadPaths(serverDrawing);
@@ -363,14 +439,22 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
                       }, 100);
                     }
                   }
-                } else if (JSON.stringify(currentDrawing) !== JSON.stringify(serverDrawing) && timeSinceServerUpdate >= 2000) {
+                } else if (
+                  JSON.stringify(currentDrawing) !==
+                    JSON.stringify(serverDrawing) &&
+                  timeSinceServerUpdate >= 2000
+                ) {
                   // Use server value if it's older than 2 seconds
                   updatedDrawings[questionId] = serverDrawing;
                   hasChanges = true;
-                  
+
                   // Reload canvas if this is the current question
                   const currentQuestionId = test?.questions?.[currentIdx]?.id;
-                  if (showCanvas && currentQuestionId === questionId && canvasRef.current) {
+                  if (
+                    showCanvas &&
+                    currentQuestionId === questionId &&
+                    canvasRef.current
+                  ) {
                     setTimeout(() => {
                       if (serverDrawing && serverDrawing.length > 0) {
                         canvasRef.current.loadPaths(serverDrawing);
@@ -381,10 +465,10 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
                   }
                 }
               }
-              
+
               return hasChanges ? updatedDrawings : prevDrawings;
             });
-            
+
             // Always update time from server
             setTimeLeft(response.timeLeft);
           }
@@ -398,7 +482,16 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
       const interval = setInterval(syncFromBackend, 2000); // Sync every 2 seconds (reduced from 5 seconds)
       return () => clearInterval(interval);
     }
-  }, [testId, teamId, started, showCanvas, currentIdx, test, lastUserActivity, submitted]);
+  }, [
+    testId,
+    teamId,
+    started,
+    showCanvas,
+    currentIdx,
+    test,
+    lastUserActivity,
+    submitted,
+  ]);
 
   const formatTime = (sec) => {
     const m = String(Math.floor(sec / 60)).padStart(2, "0");
@@ -415,12 +508,12 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
 
   const toggleBookmark = (qId) => {
     setBookmarked((prev) =>
-      prev.includes(qId) ? prev.filter((id) => id !== qId) : [...prev, qId]
+      prev.includes(qId) ? prev.filter((id) => id !== qId) : [...prev, qId],
     );
   };
 
   const saveCurrentCanvas = async () => {
-    if (showCanvas && canvasRef.current) {
+    if (showCanvas && canvasRef.current && test?.questions?.[currentIdx]) {
       const paths = await canvasRef.current.exportPaths();
       const questionId = test.questions[currentIdx].id;
       setDrawingByQuestionId((prev) => ({
@@ -453,10 +546,10 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
 
   const handleSubmit = async () => {
     if (isSubmitting) return; // Prevent double submission
-    
+
     setIsSubmitting(true);
     await saveCurrentCanvas();
-    
+
     // Ensure token is set before making API calls
     const loggedUser = localStorage.getItem("loggedAppUser");
     if (loggedUser) {
@@ -465,65 +558,72 @@ const TakeTest = ({ tests, user, users, teams, setNotif, setError, setTests }) =
       submissionService.setToken(userData.token);
       testService.setToken(userData.token);
     }
-    
+
     try {
       // Final sync of all answers before submission
       if (testId && teamId) {
         await answerService.update(testId, teamId, {
           answers,
           drawings: drawingByQuestionId,
-          timeLeft
+          timeLeft,
         });
 
         // Create submission
         await submissionService.create({
           testId,
           teamId,
-          finalTimeLeft: timeLeft
+          finalTimeLeft: timeLeft,
         });
 
         // Remove team from test's assignees
-        const currentTest = tests.find(t => String(t.id) === testId);
-        if (currentTest) {
-          const updatedAssignees = currentTest.assignees.filter(assignee => {
-  const assigneeId = typeof assignee === 'object' ? assignee.id : assignee;
-  return assigneeId !== teamId;
-});
+        const currentTest = Array.isArray(tests)
+          ? tests.find((t) => String(t.id) === testId)
+          : null;
+        if (currentTest && Array.isArray(currentTest.assignees)) {
+          const updatedAssignees = currentTest.assignees.filter((assignee) => {
+            const assigneeId =
+              typeof assignee === "object" ? assignee.id : assignee;
+            return assigneeId !== teamId;
+          });
 
-// Extract IDs for the API call (backend expects array of IDs)
-const assigneeIds = updatedAssignees.map(assignee => 
-  typeof assignee === 'object' ? assignee.id : assignee
-);
+          // Extract IDs for the API call (backend expects array of IDs)
+          const assigneeIds = updatedAssignees.map((assignee) =>
+            typeof assignee === "object" ? assignee.id : assignee,
+          );
 
-await testService.updateTest(testId, { assignees: assigneeIds });
-          
+          await testService.updateTest(testId, { assignees: assigneeIds });
+
           // Update local tests state
           if (setTests) {
-            setTests(prevTests => 
-              prevTests.map(t => 
-                String(t.id) === testId 
+            setTests((prevTests) => {
+              if (!Array.isArray(prevTests)) {
+                console.warn("prevTests is not an array:", prevTests);
+                return prevTests;
+              }
+              return prevTests.map((t) =>
+                String(t.id) === testId
                   ? { ...t, assignees: updatedAssignees }
-                  : t
-              )
-            );
+                  : t,
+              );
+            });
           }
         }
 
         setStarted(false);
         setSubmitted(true);
         clearTimeout(timerRef.current);
-        
+
         // Show success notification
         if (setNotif) {
           setNotif("Test submitted successfully!");
           setTimeout(() => setNotif(null), 5000);
         }
-        
+
         console.log("Test submitted successfully!");
       }
     } catch (error) {
       console.error("Failed to submit test:", error);
-      
+
       // Show error notification
       if (setError) {
         setError("Failed to submit test. Please try again.");
@@ -538,7 +638,7 @@ await testService.updateTest(testId, { assignees: assigneeIds });
     setStarted(true);
     setShowCanvas(false);
     setEraseMode(false);
-    
+
     // Ensure token is set before making API calls
     const loggedUser = localStorage.getItem("loggedAppUser");
     if (loggedUser) {
@@ -546,7 +646,7 @@ await testService.updateTest(testId, { assignees: assigneeIds });
       answerService.setToken(userData.token);
       testService.setToken(userData.token);
     }
-    
+
     // Create initial answers document
     if (testId && teamId) {
       try {
@@ -555,7 +655,7 @@ await testService.updateTest(testId, { assignees: assigneeIds });
           teamId,
           answers: {},
           drawings: {},
-          timeLeft: 50 * 60
+          timeLeft: 50 * 60,
         });
         // Set the time from the server response
         setTimeLeft(response.timeLeft);
@@ -569,6 +669,8 @@ await testService.updateTest(testId, { assignees: assigneeIds });
   };
 
   const toggleCanvas = async () => {
+    if (!test?.questions?.[currentIdx]) return;
+
     const qid = test.questions[currentIdx].id;
     if (showCanvas) {
       if (canvasRef.current) {
@@ -595,7 +697,7 @@ await testService.updateTest(testId, { assignees: assigneeIds });
   };
 
   const clearCanvas = () => {
-    if (canvasRef.current) {
+    if (canvasRef.current && test?.questions?.[currentIdx]) {
       canvasRef.current.clearCanvas();
       const qid = test.questions[currentIdx].id;
       setDrawingByQuestionId((prev) => {
@@ -616,7 +718,14 @@ await testService.updateTest(testId, { assignees: assigneeIds });
     }
   };
 
-  if (!user || !test || isLoading) {
+  if (
+    !user ||
+    !test ||
+    !test.questions ||
+    !Array.isArray(test.questions) ||
+    isLoading ||
+    !Array.isArray(tests)
+  ) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="w-12 h-12 border-4 border-orange-400 border-t-transparent rounded-full animate-spin" />
@@ -629,17 +738,32 @@ await testService.updateTest(testId, { assignees: assigneeIds });
       <div className="flex flex-col justify-center items-center p-20 bg-white space-y-10 rounded-lg">
         <div className="text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            <svg
+              className="w-8 h-8 text-green-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              ></path>
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-green-800 mb-2">Test Submitted Successfully!</h1>
+          <h1 className="text-3xl font-bold text-green-800 mb-2">
+            Test Submitted Successfully!
+          </h1>
           <p className="text-gray-600">
             Your answers have been saved and submitted for grading.
           </p>
 
           <div className="pt-10">
-            <Link to={`/review`} className="text-white bg-orange-500 font-semibold text-md py-3 px-4 rounded-lg hover:bg-orange-600">
+            <Link
+              to={`/review`}
+              className="text-white bg-orange-500 font-semibold text-md py-3 px-4 rounded-lg hover:bg-orange-600"
+            >
               Review Test
             </Link>
           </div>
@@ -652,10 +776,13 @@ await testService.updateTest(testId, { assignees: assigneeIds });
     return (
       <div className="flex flex-col justify-center items-center p-20 bg-white space-y-10 rounded-lg">
         <h1 className="text-3xl font-bold text-orange-800">
-          {test.random ? 'Random Test' : `${test.school} ${test.year}`} — {test.event} Practice Test
+          {test.random ? "Random Test" : `${test.school} ${test.year}`} —{" "}
+          {test.event} Practice Test
         </h1>
         {!teamId ? (
-          <p className="text-red-600">You are not assigned to a team for this event.</p>
+          <p className="text-red-600">
+            You are not assigned to a team for this event.
+          </p>
         ) : (
           <button
             onClick={startTest}
@@ -668,11 +795,21 @@ await testService.updateTest(testId, { assignees: assigneeIds });
     );
   }
 
-  const currentQuestion = test.questions[currentIdx];
-  const currentQId = currentQuestion.id;
+  const currentQuestion = test.questions?.[currentIdx];
+  const currentQId = currentQuestion?.id;
+
+  // Ensure currentIdx is within bounds
+  const questionsLength = test.questions?.length || 0;
+  if (currentIdx >= questionsLength && questionsLength > 0) {
+    setCurrentIdx(questionsLength - 1);
+    return null; // Re-render with correct index
+  }
 
   return (
-    <div ref={testContainerRef} className="w-full min-h-screen bg-transparent py-5 px-4">
+    <div
+      ref={testContainerRef}
+      className="w-full min-h-screen bg-transparent py-5 px-4"
+    >
       <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md py-6 px-8 space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-orange-800">
@@ -686,10 +823,12 @@ await testService.updateTest(testId, { assignees: assigneeIds });
         <div className="flex space-x-4">
           <div className="w-64 h-[500px] overflow-y-auto pr-2 scrollbar-hide bg-gray-100 rounded-lg">
             <div className="sticky top-0 bg-gray-100 z-10 pb-2 pt-3">
-              <h3 className="text-lg font-semibold text-orange-700 text-center">Questions</h3>
+              <h3 className="text-lg font-semibold text-orange-700 text-center">
+                Questions
+              </h3>
             </div>
             <QuestionSidebar
-              questions={test.questions}
+              questions={test.questions || []}
               currentIdx={currentIdx}
               setCurrentIdx={handleQuestionNavigation}
               bookmarked={bookmarked}
@@ -702,15 +841,21 @@ await testService.updateTest(testId, { assignees: assigneeIds });
             ref={questionViewRef}
             className="flex-1 relative max-h-[500px] overflow-auto pr-2 scrollbar-hide"
           >
-            <QuestionView
-              idx={currentIdx}
-              question={currentQuestion}
-              answer={answers[currentQId]}
-              onChange={handleAnswerChange}
-              onBookmark={toggleBookmark}
-              isBookmarked={bookmarked.includes(currentQId)}
-              event={test.event}
-            />
+            {currentQuestion ? (
+              <QuestionView
+                idx={currentIdx}
+                question={currentQuestion}
+                answer={answers[currentQId]}
+                onChange={handleAnswerChange}
+                onBookmark={toggleBookmark}
+                isBookmarked={bookmarked.includes(currentQId)}
+                event={test.event}
+              />
+            ) : (
+              <div className="p-4 text-center text-gray-500">
+                Question not found
+              </div>
+            )}
 
             {showCanvas && (
               <div
@@ -764,7 +909,9 @@ await testService.updateTest(testId, { assignees: assigneeIds });
             <button
               onClick={toggleCanvas}
               className={`rounded shadow text-white ${
-                showCanvas ? "px-3 py-1 bg-gray-500 hover:bg-gray-600" : "px-4 py-2 bg-amber-600 hover:bg-amber-700"
+                showCanvas
+                  ? "px-3 py-1 bg-gray-500 hover:bg-gray-600"
+                  : "px-4 py-2 bg-amber-600 hover:bg-amber-700"
               }`}
             >
               {showCanvas ? "Hide Drawing" : "Show Drawing"}
@@ -780,7 +927,7 @@ await testService.updateTest(testId, { assignees: assigneeIds });
               Previous
             </button>
             <button
-              disabled={currentIdx === test.questions.length - 1}
+              disabled={currentIdx === (test.questions?.length - 1 || 0)}
               onClick={goToNext}
               className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
             >
@@ -795,7 +942,11 @@ await testService.updateTest(testId, { assignees: assigneeIds });
                   : "bg-orange-600 hover:bg-orange-700"
               } text-white`}
             >
-              {isSubmitting ? "Submitting..." : submitted ? "Submitted" : "Submit Test"}
+              {isSubmitting
+                ? "Submitting..."
+                : submitted
+                  ? "Submitted"
+                  : "Submit Test"}
             </button>
           </div>
         </div>

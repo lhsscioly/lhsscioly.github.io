@@ -27,9 +27,16 @@ const getStudentStatistics = async (studentId) => {
 
 // Get submissions for a specific user (for enhanced Review)
 const getUserSubmissions = async (userId) => {
-  const response = await axios.get(`/api/submissions/user/${userId}`, getConfig());
+  const response = await axios.get(
+    `/api/submissions/user/${userId}`,
+    getConfig(),
+  );
   return response.data;
 };
 
-export default { setToken, getOverallStatistics, getStudentStatistics, getUserSubmissions };
-
+export default {
+  setToken,
+  getOverallStatistics,
+  getStudentStatistics,
+  getUserSubmissions,
+};

@@ -29,7 +29,14 @@ import questionService from "./services/questions";
 import answerService from "./services/answers";
 import submissionService from "./services/submissions";
 import statisticsService from "./services/statistics";
-import { Routes, Route, Link, useNavigate, Router, Navigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  Router,
+  Navigate,
+} from "react-router-dom";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -76,11 +83,15 @@ function App() {
     const fetchTests = async () => {
       try {
         const result = await testService.getAll();
-        if (result) {
+        if (result && Array.isArray(result)) {
           setTests(result);
+        } else {
+          console.warn("Tests API returned non-array:", result);
+          setTests([]);
         }
       } catch (error) {
         console.error("Failed to fetch tests:", error);
+        setTests([]);
       }
     };
     if (user && tests.length === 0) {
@@ -124,11 +135,15 @@ function App() {
     const fetchTeams = async () => {
       try {
         const result = await teamService.getAll();
-        if (result) {
+        if (result && Array.isArray(result)) {
           setTeams(result);
+        } else {
+          console.warn("Teams API returned non-array:", result);
+          setTeams([]);
         }
       } catch (error) {
         console.error("Failed to fetch teams:", error);
+        setTeams([]);
       }
     };
     if (user && teams.length === 0) {
@@ -190,7 +205,9 @@ function App() {
         } else if (
           error.response.data.error === "expected `name` to be unique"
         ) {
-          setError("Name already taken. Please add your middle name/initial to your first name");
+          setError(
+            "Name already taken. Please add your middle name/initial to your first name",
+          );
         } else {
           console.log(error.response.data.error);
         }
@@ -342,7 +359,10 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center space-x-4">
-              <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
+              <Link
+                to="/"
+                className="flex items-center space-x-2 flex-shrink-0"
+              >
                 <img
                   src="/lville.png"
                   alt="Logo"
@@ -678,26 +698,18 @@ function App() {
             />
             <Route
               path="/review"
-              element={
-                <ReviewTests
-                  user={user}
-                  users={users}
-                  teams={teams}
-                />
-              }
+              element={<ReviewTests user={user} users={users} teams={teams} />}
             />
-            <Route
-              path="/review/all"
-              element={<AllTests user={user} />}
-            />
-            <Route
-              path="/review/:id"
-              element={<Review user={user} />}
-            />
+            <Route path="/review/all" element={<AllTests user={user} />} />
+            <Route path="/review/:id" element={<Review user={user} />} />
             <Route
               path="/statistics"
               element={
-                user && user.admin ? <Statistics /> : <Navigate to="/" replace />
+                user && user.admin ? (
+                  <Statistics />
+                ) : (
+                  <Navigate to="/" replace />
+                )
               }
             />
             <Route

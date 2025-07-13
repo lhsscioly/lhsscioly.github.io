@@ -116,7 +116,10 @@ const Test = ({ tests, user, teams, setError, setNotif, setTests }) => {
               <div className="mb-3 font-medium text-orange-900">
                 <span>Q{i + 1}: </span>
                 {q.question.map((part, index) => (
-                  <span key={index} className={index > 0 ? "block mt-4" : "inline"}>
+                  <span
+                    key={index}
+                    className={index > 0 ? "block mt-4" : "inline"}
+                  >
                     {part}
                   </span>
                 ))}
