@@ -33,11 +33,11 @@ jobs:
         run: npx prettier . --write
       - name: Build app
         run: npm run build
-      - name: Upload build artifact
+      - name: Upload index.html artifact
         uses: actions/upload-artifact@v4
         with:
           name: github-pages
-          path: dist
+          path: dist/index.html
 
   deploy:
     # Add a dependency to the build job
@@ -56,7 +56,7 @@ jobs:
     # Specify runner + deployment step
     runs-on: ubuntu-latest
     steps:
-      - name: Download build artifact
+      - name: Download index.html artifact
         uses: actions/download-artifact@v4
         with:
           name: github-pages
