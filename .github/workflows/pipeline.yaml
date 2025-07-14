@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: lts/*
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Fix style
         run: npx prettier . --write
       - name: Build app
