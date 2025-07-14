@@ -61,7 +61,10 @@ jobs:
         with:
           name: github-pages
       - name: Extract artifact
-        run: mkdir -p dist && mv * dist
+        run: |
+          mkdir -p dist
+          shopt -s extglob
+          mv !(dist) dist/
       - name: List dist contents
         run: ls -R dist
       - name: Deploy to GitHub Pages
