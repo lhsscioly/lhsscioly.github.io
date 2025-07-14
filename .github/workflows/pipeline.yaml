@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: github-pages
-          path: dist/index.html
+          path: dist/
 
   deploy:
     # Add a dependency to the build job
@@ -60,6 +60,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: github-pages
+      - name: List dist contents
+        run: ls -R dist
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
