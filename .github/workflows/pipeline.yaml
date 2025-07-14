@@ -60,6 +60,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: github-pages
+      - name: Extract artifact
+        run: mkdir -p dist && mv * dist
       - name: List dist contents
         run: ls -R dist
       - name: Deploy to GitHub Pages
