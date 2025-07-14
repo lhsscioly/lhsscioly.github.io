@@ -65,6 +65,7 @@ jobs:
           mkdir -p dist
           shopt -s extglob
           mv !(dist) dist/
+          mv dist/* .
       - name: List dist contents
         run: ls -R dist
       - name: Deploy to GitHub Pages
