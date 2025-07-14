@@ -69,4 +69,7 @@ jobs:
         run: ls -R dist
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        run: |
+          cd dist
+        uses: actions/deploy-pages@v4 
+            
