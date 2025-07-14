@@ -70,7 +70,5 @@ jobs:
         run: ls -R dist
       - name: Deploy to GitHub Pages
         id: deployment
-        run: |
-          cd dist
         uses: actions/deploy-pages@v4 
             
