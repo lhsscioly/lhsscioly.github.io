@@ -247,12 +247,13 @@ const ReviewQuestionView = ({
                     <input
                       type="number"
                       min="0"
-                      max={question.points}
+                      max={question.points} // Ensure the score cannot exceed the total points
                       className="w-20 border border-blue-300 rounded px-2 py-1"
                       value={selfGradedScore || ""}
-                      onChange={(e) =>
-                        onSelfGrade(question.id, "score", e.target.value)
-                      }
+                      onChange={(e) => {
+                        const value = Math.min(e.target.value, question.points); // Prevent exceeding max points
+                        onSelfGrade(question.id, "score", value);
+                      }}
                       placeholder={
                         !userAnswer || userAnswer.trim() === "" ? "0" : ""
                       }
