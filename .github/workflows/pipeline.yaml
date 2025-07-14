@@ -33,6 +33,12 @@ jobs:
         run: npx prettier . --write
       - name: Build app
         run: npm run build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: dist
+
   deploy:
     # Add a dependency to the build job
     needs: build
@@ -50,7 +56,14 @@ jobs:
     # Specify runner + deployment step
     runs-on: ubuntu-latest
     steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
-        
+        uses: actions/deploy-pages@v4
+        with:
+          # Specify the directory containing the built files
+          folder: dist
+
