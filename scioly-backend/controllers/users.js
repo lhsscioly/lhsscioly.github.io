@@ -52,7 +52,7 @@ usersRouter.post("/", async (request, response) => {
     }
   }
 
-  let user = await User.find({ firstName, lastName });
+  let user = await User.findOne({ firstName, lastName });
   if (user) {
     return response.status(400).json({ error: "expected `name` to be unique" });
   }
