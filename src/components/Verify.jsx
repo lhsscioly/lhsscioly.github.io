@@ -1,12 +1,13 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import userService from "../services/users";
 
 const Verify = (props) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const token = query.get("token");
+    const token = searchParams.get("token");
 
     const verify = async () => {
       try {

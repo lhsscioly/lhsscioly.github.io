@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Reset = (props) => {
   const [newPass, setNewPass] = useState("");
   const navigate = useNavigate();
-  const query = new URLSearchParams(window.location.search);
-  const token = query.get("token");
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
 
   if (!token) {
     return;
