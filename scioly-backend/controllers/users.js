@@ -88,7 +88,7 @@ usersRouter.post("/", async (request, response) => {
         html: `
                     <p>Hello ${firstName},</p>
                     <p>Please verify your email by clicking the link below:</p>
-                    <a href="https://lhsscioly.onrender.com/verify?token=${verificationToken}">Verify Email</a>
+                    <a href="https://shubhvarshney.github.io/lhsscioly/verify?token=${verificationToken}">Verify Email</a>
                 `,
       });
     } catch (error) {
@@ -128,7 +128,7 @@ usersRouter.post("/forgot", async (req, res) => {
   user.resetPasswordExpires = Date.now() + 1000 * 60 * 15; // 15 minutes
   await user.save();
 
-  const resetLink = `https://lhsscioly.onrender.com/reset?token=${token}`;
+  const resetLink = `https://shubhvarshney.github.io/lhsscioly/reset?token=${token}`;
 
   const transporter = nodemailer.createTransport({
     service: "Gmail",
