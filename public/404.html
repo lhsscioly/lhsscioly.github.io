@@ -1,7 +1,0 @@
-<script>
-    // Redirect all routes to the SPA index.html while preserving the original path
-    if (!window.location.pathname.startsWith('/lhsscioly')) {
-        const path = window.location.pathname + window.location.search;
-        window.location.href = "/lhsscioly" + path;
-    }
-</script>
