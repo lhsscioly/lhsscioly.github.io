@@ -60,15 +60,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: github-pages
-      - name: Extract artifact
-        run: |
-          mkdir -p dist
-          shopt -s extglob
-          mv !(dist) dist/
-          mv dist/* .
+          path: dist/
       - name: List dist contents
         run: ls -R dist
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4 
+        with:
+          path: dist
             
