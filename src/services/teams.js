@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 const baseUrl = "/api/teams";
 
@@ -9,7 +9,7 @@ const setToken = (newToken) => {
 };
 
 const getAll = async () => {
-  const response = await axios.get(baseUrl, {
+  const response = await apiClient.get(baseUrl, {
     headers: {
       Authorization: token,
     },
@@ -18,7 +18,7 @@ const getAll = async () => {
 };
 
 const createTeam = async (teamObject) => {
-  const response = await axios.post(baseUrl, teamObject, {
+  const response = await apiClient.post(baseUrl, teamObject, {
     headers: {
       Authorization: token,
     },
@@ -28,7 +28,7 @@ const createTeam = async (teamObject) => {
 
 const changeTeam = async (id, teamObject) => {
   const url = `${baseUrl}/${id}`;
-  const response = await axios.put(url, teamObject, {
+  const response = await apiClient.put(url, teamObject, {
     headers: {
       Authorization: token,
     },
@@ -38,14 +38,12 @@ const changeTeam = async (id, teamObject) => {
 
 const deleteTeam = async (id) => {
   const url = `${baseUrl}/${id}`;
-  const response = await axios.delete(url, {
+  const response = await apiClient.delete(url, {
     headers: {
       Authorization: token,
     },
   });
-  if (response.status === 204) {
-    return { id };
-  }
+  return response.data;
 };
 
 export default { setToken, getAll, createTeam, changeTeam, deleteTeam };

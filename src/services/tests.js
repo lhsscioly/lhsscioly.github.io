@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 const baseUrl = "/api/tests";
 
@@ -9,7 +9,7 @@ const setToken = (newToken) => {
 };
 
 const getAll = async () => {
-  const response = await axios.get(baseUrl, {
+  const response = await apiClient.get(baseUrl, {
     headers: {
       Authorization: token,
     },
@@ -18,7 +18,7 @@ const getAll = async () => {
 };
 
 const createTest = async (testObject) => {
-  const response = await axios.post(baseUrl, testObject, {
+  const response = await apiClient.post(baseUrl, testObject, {
     headers: {
       Authorization: token,
     },
@@ -27,7 +27,7 @@ const createTest = async (testObject) => {
 };
 
 const updateTest = async (id, testObject) => {
-  const response = await axios.put(
+  const response = await apiClient.put(
     `${baseUrl}/${id}`,
     { assignees: testObject.assignees },
     {
