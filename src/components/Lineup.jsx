@@ -43,20 +43,19 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
           setTeams(teams.concat(newTeam));
         } else {
           if (
-            arraysEqual(
+            !arraysEqual(
               currVarsity.students,
               assignments.orange.map((u) => u.id),
             )
           ) {
-            return;
+            console.log("Updating Varsity team for", eventName);
+            const updatedTeam = await teamService.changeTeam(currVarsity.id, {
+              students: assignments.orange.map((u) => u.id),
+            });
+            setTeams(
+              teams.map((t) => (t.id === currVarsity.id ? updatedTeam : t)),
+            );
           }
-          console.log("Updating Varsity team for", eventName);
-          const updatedTeam = await teamService.changeTeam(currVarsity.id, {
-            students: assignments.orange.map((u) => u.id),
-          });
-          setTeams(
-            teams.map((t) => (t.id === currVarsity.id ? updatedTeam : t)),
-          );
         }
       } else {
         if (currVarsity) {
@@ -79,21 +78,20 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
           setTeams(teams.concat(newTeam));
         } else {
           if (
-            arraysEqual(
+            !arraysEqual(
               currJuniorVarsity.students,
               assignments.black.map((u) => u.id),
             )
           ) {
-            return;
+            console.log("Updating JV team for", eventName);
+            const updatedTeam = await teamService.changeTeam(
+              currJuniorVarsity.id,
+              { students: assignments.black.map((u) => u.id) },
+            );
+            setTeams(
+              teams.map((t) => (t.id === currJuniorVarsity.id ? updatedTeam : t)),
+            );
           }
-          console.log("Updating JV team for", eventName);
-          const updatedTeam = await teamService.changeTeam(
-            currJuniorVarsity.id,
-            { students: assignments.black.map((u) => u.id) },
-          );
-          setTeams(
-            teams.map((t) => (t.id === currJuniorVarsity.id ? updatedTeam : t)),
-          );
         }
       } else {
         if (currJuniorVarsity) {
@@ -118,23 +116,22 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
           setTeams(teams.concat(newTeam));
         } else {
           if (
-            arraysEqual(
+            !arraysEqual(
               currJuniorVarsity2.students,
               assignments.white.map((u) => u.id),
             )
           ) {
-            return;
+            console.log("Updating JV2 team for", eventName);
+            const updatedTeam = await teamService.changeTeam(
+              currJuniorVarsity2.id,
+              { students: assignments.white.map((u) => u.id) },
+            );
+            setTeams(
+              teams.map((t) =>
+                t.id === currJuniorVarsity2.id ? updatedTeam : t,
+              ),
+            );
           }
-          console.log("Updating JV2 team for", eventName);
-          const updatedTeam = await teamService.changeTeam(
-            currJuniorVarsity2.id,
-            { students: assignments.white.map((u) => u.id) },
-          );
-          setTeams(
-            teams.map((t) =>
-              t.id === currJuniorVarsity2.id ? updatedTeam : t,
-            ),
-          );
         }
       } else {
         if (currJuniorVarsity2) {
