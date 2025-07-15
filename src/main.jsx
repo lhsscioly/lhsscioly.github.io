@@ -4,7 +4,7 @@ import { HashRouter as Router } from "react-router-dom";
 import "./index.css";
 
 createRoot(document.getElementById("root")).render(
-  <Router basename="/lhsscioly">
+  <Router>
     <App />
   </Router>,
 );
