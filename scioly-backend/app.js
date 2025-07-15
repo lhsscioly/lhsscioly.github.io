@@ -32,7 +32,7 @@ mongoose
 app.use(cors());
 app.use(express.json());
 app.use(middleware.tokenExtractor);
-app.use(express.static("dist"));
+//app.use(express.static("dist"));
 app.use("/api/users", usersRouter);
 app.use("/api/login", loginRouter);
 app.use("/api/events", eventsRouter);
@@ -43,6 +43,7 @@ app.use("/api/answers", answersRouter);
 app.use("/api/submissions", submissionsRouter);
 app.use("/api/statistics", statisticsRouter);
 
+/*
 app.use((req, res, next) => {
     if (req.path.startsWith('/api/')) {
         return next();
@@ -50,5 +51,6 @@ app.use((req, res, next) => {
     
     res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
+*/
 
 module.exports = app;
