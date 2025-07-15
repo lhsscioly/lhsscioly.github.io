@@ -364,7 +364,7 @@ function App() {
                 className="flex items-center space-x-2 flex-shrink-0"
               >
                 <img
-                  src="/lhsscioly/lville.png"
+                  src="/lville.png"
                   alt="Logo"
                   className="h-8 transition-transform duration-200 hover:scale-110"
                 />
