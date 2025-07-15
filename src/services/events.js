@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 const baseUrl = "/api/events";
 
@@ -9,12 +9,12 @@ const setToken = (newToken) => {
 };
 
 const getAll = async () => {
-  const response = await axios.get(baseUrl);
+  const response = await apiClient.get(baseUrl);
   return response.data;
 };
 
 const createEvent = async (eventObject) => {
-  const response = await axios.post(baseUrl, eventObject, {
+  const response = await apiClient.post(baseUrl, eventObject, {
     headers: {
       Authorization: token,
     },
@@ -24,7 +24,7 @@ const createEvent = async (eventObject) => {
 
 const changeEvent = async (id, eventObject) => {
   const url = `${baseUrl}/${id}`;
-  const response = await axios.put(url, eventObject, {
+  const response = await apiClient.put(url, eventObject, {
     headers: {
       Authorization: token,
     },
@@ -34,7 +34,7 @@ const changeEvent = async (id, eventObject) => {
 
 const deleteEvent = async (id) => {
   const url = `${baseUrl}/${id}`;
-  const response = await axios.delete(url, {
+  const response = await apiClient.delete(url, {
     headers: {
       Authorization: token,
     },

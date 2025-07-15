@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 const baseUrl = "/api/statistics";
 
@@ -15,19 +15,19 @@ const getConfig = () => ({
 // Get overall statistics for coaches
 const getOverallStatistics = async (schoolYear = null) => {
   const url = schoolYear ? `${baseUrl}?schoolYear=${schoolYear}` : baseUrl;
-  const response = await axios.get(url, getConfig());
+  const response = await apiClient.get(url, getConfig());
   return response.data;
 };
 
 // Get individual student statistics
 const getStudentStatistics = async (studentId) => {
-  const response = await axios.get(`${baseUrl}/${studentId}`, getConfig());
+  const response = await apiClient.get(`${baseUrl}/${studentId}`, getConfig());
   return response.data;
 };
 
 // Get submissions for a specific user (for enhanced Review)
 const getUserSubmissions = async (userId) => {
-  const response = await axios.get(
+  const response = await apiClient.get(
     `/api/submissions/user/${userId}`,
     getConfig(),
   );

@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 const baseUrl = "/api/questions";
 
@@ -9,7 +9,7 @@ const setToken = (newToken) => {
 };
 
 const getAll = async () => {
-  const response = await axios.get(baseUrl, {
+  const response = await apiClient.get(baseUrl, {
     headers: {
       Authorization: token,
     },
@@ -18,7 +18,7 @@ const getAll = async () => {
 };
 
 const createQuestion = async (questionObject) => {
-  const response = await axios.post(baseUrl, questionObject, {
+  const response = await apiClient.post(baseUrl, questionObject, {
     headers: {
       Authorization: token,
     },
