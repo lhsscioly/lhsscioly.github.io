@@ -364,7 +364,7 @@ function App() {
                 className="flex items-center space-x-2 flex-shrink-0"
               >
                 <img
-                  src="/lville.png"
+                  src="/lhsscioly/lville.png"
                   alt="Logo"
                   className="h-8 transition-transform duration-200 hover:scale-110"
                 />
@@ -705,11 +705,11 @@ function App() {
             <Route
               path="/statistics"
               element={
-                user && user.admin ? (
-                  <Statistics />
-                ) : (
-                  <Navigate to="/" replace />
-                )
+                user && user.admin !== undefined
+                  ? user.admin
+                    ? <Statistics />
+                    : <Navigate to="/" replace />
+                  : null // Don't render anything until user is loaded
               }
             />
             <Route
