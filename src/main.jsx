@@ -4,7 +4,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import "./index.css";
 
 createRoot(document.getElementById("root")).render(
-  <Router>
+  <Router basename="/lhsscioly">
     <App />
   </Router>,
 );
