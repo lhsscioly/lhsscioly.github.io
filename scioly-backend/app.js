@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const path = require("path");
 const config = require("./utils/config");
@@ -28,6 +29,7 @@ mongoose
     logger.error("error connecting to MongoDB:", error.message);
   });
 
+app.use(cors());
 app.use(express.json());
 app.use(middleware.tokenExtractor);
 app.use(express.static("dist"));

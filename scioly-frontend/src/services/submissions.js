@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 const baseUrl = "/api/submissions";
 
@@ -13,22 +13,22 @@ const getConfig = () => ({
 });
 
 const create = async (newSubmission) => {
-  const response = await axios.post(baseUrl, newSubmission, getConfig());
+  const response = await apiClient.post(baseUrl, newSubmission, getConfig());
   return response.data;
 };
 
 const getAll = async () => {
-  const response = await axios.get(baseUrl, getConfig());
+  const response = await apiClient.get(baseUrl, getConfig());
   return response.data;
 };
 
 const getById = async (id) => {
-  const response = await axios.get(`${baseUrl}/${id}`, getConfig());
+  const response = await apiClient.get(`${baseUrl}/${id}`, getConfig());
   return response.data;
 };
 
 const checkSubmission = async (testId, teamId) => {
-  const response = await axios.get(
+  const response = await apiClient.get(
     `${baseUrl}/check/${testId}/${teamId}`,
     getConfig(),
   );
@@ -36,12 +36,12 @@ const checkSubmission = async (testId, teamId) => {
 };
 
 const getByTeam = async (teamId) => {
-  const response = await axios.get(`${baseUrl}/team/${teamId}`, getConfig());
+  const response = await apiClient.get(`${baseUrl}/team/${teamId}`, getConfig());
   return response.data;
 };
 
 const update = async (id, updatedSubmission) => {
-  const response = await axios.put(
+  const response = await apiClient.put(
     `${baseUrl}/${id}`,
     updatedSubmission,
     getConfig(),

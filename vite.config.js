@@ -4,13 +4,6 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/lhsscioly/",
   plugins: [tailwindcss(), react()],
-  server: {
-    proxy: {
-      "/api": {
-        target: "https://lhsscioly.onrender.com/api",
-        changeOrigin: true,
-      },
-    },
-  },
 });

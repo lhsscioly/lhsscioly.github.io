@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
 const baseUrl = "/api/answers";
 
@@ -13,12 +13,12 @@ const getConfig = () => ({
 });
 
 const create = async (newAnswer) => {
-  const response = await axios.post(baseUrl, newAnswer, getConfig());
+  const response = await apiClient.post(baseUrl, newAnswer, getConfig());
   return response.data;
 };
 
 const getByTestAndTeam = async (testId, teamId) => {
-  const response = await axios.get(
+  const response = await apiClient.get(
     `${baseUrl}/${testId}/${teamId}`,
     getConfig(),
   );
@@ -26,7 +26,7 @@ const getByTestAndTeam = async (testId, teamId) => {
 };
 
 const update = async (testId, teamId, updatedAnswer) => {
-  const response = await axios.put(
+  const response = await apiClient.put(
     `${baseUrl}/${testId}/${teamId}`,
     updatedAnswer,
     getConfig(),
@@ -39,7 +39,7 @@ const updateSpecific = async (
   teamId,
   { questionId, answer, drawing },
 ) => {
-  const response = await axios.patch(
+  const response = await apiClient.patch(
     `${baseUrl}/${testId}/${teamId}`,
     { questionId, answer, drawing },
     getConfig(),
@@ -48,7 +48,7 @@ const updateSpecific = async (
 };
 
 const getAll = async () => {
-  const response = await axios.get(baseUrl, getConfig());
+  const response = await apiClient.get(baseUrl, getConfig());
   return response.data;
 };
 
