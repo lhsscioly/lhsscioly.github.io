@@ -41,7 +41,7 @@ const TestBank = (props) => {
             <select
               value={eventFilter}
               onChange={({ target }) => setEventFilter(target.value)}
-              className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 appearance-none"
             >
               <option key="all" value="">
                 All
@@ -61,7 +61,7 @@ const TestBank = (props) => {
             <select
               value={schoolFilter}
               onChange={({ target }) => setSchoolFilter(target.value)}
-              className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 appearance-none"
             >
               <option key="all" value="">
                 All
@@ -81,7 +81,7 @@ const TestBank = (props) => {
             <select
               value={yearFilter}
               onChange={({ target }) => setYearFilter(target.value)}
-              className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="p-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 appearance-none"
             >
               <option key="all" value="">
                 All

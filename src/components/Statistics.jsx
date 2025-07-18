@@ -127,7 +127,7 @@ const Statistics = () => {
               id="schoolYear"
               value={selectedSchoolYear}
               onChange={(e) => handleSchoolYearChange(e.target.value)}
-              className="rounded-md border border-gray-300 px-3 py-2 bg-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="rounded-md border border-gray-300 px-3 py-2 bg-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
             >
               {overallStats.availableSchoolYears.map((year) => (
                 <option key={year} value={year}>

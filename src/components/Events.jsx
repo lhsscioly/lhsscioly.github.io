@@ -165,7 +165,7 @@ const Events = (props) => {
               name="category"
               value={group}
               onChange={({ target }) => setGroup(target.value)}
-              className="w-full px-1 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-orange-50"
+              className="w-full px-1 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-orange-50 appearance-none"
             >
               <option value="" disabled hidden>
                 Select Category
@@ -197,7 +197,7 @@ const Events = (props) => {
               name="block"
               value={block}
               onChange={({ target }) => setBlock(target.value)}
-              className="w-full px-1 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-orange-50"
+              className="w-full px-1 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 bg-orange-50 appearance-none"
             >
               <option value="">Self Schedule</option>
               <option value="1">Block 1</option>

@@ -191,7 +191,7 @@ const AllTestsContent = ({ user }) => {
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-orange-400 focus:ring-2"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-orange-400 focus:ring-2 appearance-none"
             >
               <option value="all">All Tests</option>
               <option value="graded">Graded Only</option>
@@ -207,7 +207,7 @@ const AllTestsContent = ({ user }) => {
             <select
               value={schoolYearFilter}
               onChange={(e) => setSchoolYearFilter(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-orange-400 focus:ring-2"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-orange-400 focus:ring-2 appearance-none"
             >
               <option value="all">All Years</option>
               {availableSchoolYears.map((year) => (

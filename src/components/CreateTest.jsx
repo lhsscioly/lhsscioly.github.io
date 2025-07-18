@@ -278,7 +278,7 @@ const CreateTest = (props) => {
           <select
             value={event}
             onChange={({ target }) => setEvent(target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-400 focus:ring-2"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-400 focus:ring-2 appearance-none"
           >
             <option value="" disabled selected>
               Select Event
@@ -398,7 +398,7 @@ const CreateTest = (props) => {
                   <select
                     value={type}
                     onChange={({ target }) => setType(target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-400 focus:ring-2"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-400 focus:ring-2 appearance-none"
                   >
                     <option value="" disabled>
                       Select question type

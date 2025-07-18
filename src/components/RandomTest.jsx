@@ -126,12 +126,12 @@ const RandomTest = (props) => {
         Create Random Practice Test
       </h2>
 
-      <div className="grid-cols-2 gap-4">
+      <div className="space-y-4">
         <label className="text-sm font-medium text-orange-700">Event</label>
         <select
           value={event}
           onChange={({ target }) => setEvent(target.value)}
-          className="w-full px-4 py-2 mt-2 mb-4 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="w-full px-4 pr-8 py-2 mt-2 mb-4 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none bg-white"
         >
           <option value="">Select Event</option>
           {props.events.map((event) => (
@@ -140,10 +140,9 @@ const RandomTest = (props) => {
             </option>
           ))}
         </select>
-
-        <div className="flex justify-between items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-orange-700">
+            <label className="text-sm font-medium text-orange-700 text-center md:text-left">
               # of Multiple Choice
             </label>
             <input
@@ -151,12 +150,12 @@ const RandomTest = (props) => {
               min="0"
               value={numMCQ}
               onChange={(e) => setNumMCQ(e.target.value)}
-              className="px-3 py-2 border border-orange-300 rounded-md"
+              className="px-3 py-2 border border-orange-300 rounded-md w-full"
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-orange-700">
+            <label className="text-sm font-medium text-orange-700 text-center md:text-left">
               # of Short Answer
             </label>
             <input
@@ -164,12 +163,12 @@ const RandomTest = (props) => {
               min="0"
               value={numSAQ}
               onChange={(e) => setNumSAQ(e.target.value)}
-              className="px-3 py-2 border border-orange-300 rounded-md"
+              className="px-3 py-2 border border-orange-300 rounded-md w-full"
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-orange-700">
+            <label className="text-sm font-medium text-orange-700 text-center md:text-left">
               # of Long Answer
             </label>
             <input
@@ -177,7 +176,7 @@ const RandomTest = (props) => {
               min="0"
               value={numLEQ}
               onChange={(e) => setNumLEQ(e.target.value)}
-              className="px-3 py-2 border border-orange-300 rounded-md"
+              className="px-3 py-2 border border-orange-300 rounded-md w-full"
             />
           </div>
         </div>

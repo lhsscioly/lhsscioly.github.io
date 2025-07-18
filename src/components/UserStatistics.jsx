@@ -258,24 +258,6 @@ const UserStatistics = ({ user }) => {
           </p>
         </div>
       )}
-
-      {/* Bottom navigation button for admins */}
-      {user?.admin && (
-        <div className="fixed bottom-6 right-6">
-          <button
-            onClick={() => {
-              if (cameFromStatistics) {
-                navigate("/statistics");
-              } else {
-                navigate("/review");
-              }
-            }}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow-lg transition-colors"
-          >
-            {cameFromStatistics ? "Back to All Statistics" : "Back to Reviews"}
-          </button>
-        </div>
-      )}
     </div>
   );
 };

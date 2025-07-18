@@ -131,7 +131,7 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
               onChange={(e) =>
                 setEditFields({ ...editFields, type: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-400 focus:ring-2"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-400 focus:ring-2 appearance-none"
             >
               <option value="mcq">Multiple Choice</option>
               <option value="saq">Short Answer</option>
