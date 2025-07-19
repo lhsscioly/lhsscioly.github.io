@@ -14,6 +14,17 @@ const SignUp = (props) => {
   const handleSignUp = async (event) => {
     event.preventDefault();
 
+    // Email domain validation
+    const allowedDomains = ["d128.org", "lhswildcats.org"];
+    const emailDomain = email.split("@")[1]?.toLowerCase();
+    if (!allowedDomains.includes(emailDomain)) {
+      props.setError("Email must be a d128.org or lhswildcats.org address");
+      setTimeout(() => {
+        props.setError(null);
+      }, 3000);
+      return;
+    }
+
     if (password !== confirmPassword) {
       props.setError("passwords do not match");
       setTimeout(() => {

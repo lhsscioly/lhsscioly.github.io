@@ -354,7 +354,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-repeat-y bg-[url('/radiant-combined.svg')] bg-[length:100%]">
+    <div className="font-display min-h-screen w-full flex flex-col bg-repeat-y bg-[url('/radiant-combined.svg')] bg-[length:100%]">
       <nav className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
