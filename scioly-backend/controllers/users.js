@@ -83,13 +83,13 @@ usersRouter.post("/", async (request, response) => {
       service: "Gmail",
       auth: {
         user: config.EMAIL_USER,
-        pass: "rkhpsbfxkgsbqpow",
+        pass: config.EMAIL_PASS,
       },
     });
 
     try {
       await transporter.sendMail({
-        from: `"LHS Scioly" <${process.env.EMAIL_USER}>`,
+        from: `"LHS Scioly" <${config.EMAIL_USER}>`,
         to: email,
         subject: "Verify your email address",
         html: `
@@ -140,14 +140,14 @@ usersRouter.post("/forgot", async (req, res) => {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: config.EMAIL_USER,
+      pass: config.EMAIL_PASS,
     },
   });
 
   try {
     await transporter.sendMail({
-      from: `"LHS Scioly" <${process.env.EMAIL_USER}>`,
+      from: `"LHS Scioly" <${config.EMAIL_USER}>`,
       to: email,
       subject: "Reset your password",
       html: `

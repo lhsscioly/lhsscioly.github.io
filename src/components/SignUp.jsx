@@ -9,7 +9,6 @@ const SignUp = (props) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [adminKey, setAdminKey] = useState("");
   const [admin, setAdmin] = useState(false);
-  const navigate = useNavigate("");
 
   const handleSignUp = async (event) => {
     event.preventDefault();
