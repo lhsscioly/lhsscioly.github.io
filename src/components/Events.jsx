@@ -204,7 +204,7 @@ const Events = (props) => {
               <option value="2">Block 2</option>
               <option value="3">Block 3</option>
               <option value="4">Block 4</option>
-              <option value="4">Block 5</option>
+              <option value="5">Block 5</option>
             </select>
           </div>
 
