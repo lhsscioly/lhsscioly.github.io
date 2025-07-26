@@ -75,19 +75,12 @@ testsRouter.put("/:id", userExtractor, async (request, response) => {
     return response.status(404).json({ error: "test not found" });
   }
 
-  // Check if any of the teams already have submissions for this event
+  // Check if any of the teams already have submissions for this test
   if (assignees && assignees.length > 0) {
     try {
-      // Find all tests for this event
-      const testsForEvent = await Test.find({ 
-        event: test.event 
-      }, '_id');
-
-      const testIds = testsForEvent.map(t => t._id);
-
       const existingSubmissions = await Submission.find({
         team: { $in: assignees },
-        test: { $in: testIds }
+        test: id,
       }).populate('team', 'name');
 
       if (existingSubmissions.length > 0) {
