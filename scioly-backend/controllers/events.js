@@ -1,6 +1,6 @@
 const Event = require("../models/event");
 const eventsRouter = require("express").Router();
-const { userExtractor } = require("../utils/middleware");
+const { userExtractor, optionalUserExtractor } = require("../utils/middleware");
 const { handleError, createErrorResponse, isValidObjectId, sanitizeInput } = require("../utils/security");
 
 /**
@@ -9,7 +9,7 @@ const { handleError, createErrorResponse, isValidObjectId, sanitizeInput } = req
  * - Authenticated but unverified users: Get public event data (no resources) 
  * - Verified users: Get full event data including resources
  */
-eventsRouter.get("/", userExtractor, async (request, response) => {
+eventsRouter.get("/", optionalUserExtractor, async (request, response) => {
   try {
     const events = await Event.find({});
     

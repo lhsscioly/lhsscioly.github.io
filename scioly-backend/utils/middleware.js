@@ -28,4 +28,23 @@ const userExtractor = async (request, response, next) => {
   next();
 };
 
-module.exports = { tokenExtractor, userExtractor };
+// Like userExtractor, but does not return 401 if no/invalid token; just sets request.user = null
+const optionalUserExtractor = async (request, response, next) => {
+  try {
+    if (!request.token) {
+      request.user = null;
+      return next();
+    }
+    const decodedToken = jwt.verify(request.token, process.env.SECRET);
+    if (!decodedToken.id) {
+      request.user = null;
+      return next();
+    }
+    request.user = await User.findById(decodedToken.id);
+  } catch (error) {
+    request.user = null;
+  }
+  next();
+};
+
+module.exports = { tokenExtractor, userExtractor, optionalUserExtractor };

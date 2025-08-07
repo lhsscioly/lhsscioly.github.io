@@ -33,10 +33,10 @@ usersRouter.post("/", async (request, response) => {
   const { email, firstName, lastName, password, adminKey } = request.body;
 
   // Email domain validation
-  const allowedDomains = ["d128.org", "lhsswildcats.org"];
+  const allowedDomains = ["d128.org", "lhswildcats.org"];
   const emailDomain = email?.split("@")[1]?.toLowerCase();
   if (!allowedDomains.includes(emailDomain)) {
-    return response.status(400).json({ error: "Email must be a d128.org or lhsswildcats.org address" });
+    return response.status(400).json({ error: "Email must be a d128.org or lhswildcats.org address" });
   }
 
   if (!password) {
