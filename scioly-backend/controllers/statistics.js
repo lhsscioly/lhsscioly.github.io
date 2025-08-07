@@ -2,19 +2,25 @@ const statisticsRouter = require("express").Router();
 const Submission = require("../models/submission");
 const User = require("../models/user");
 const { userExtractor } = require("../utils/middleware");
+const { handleError, createErrorResponse, sanitizeInput } = require("../utils/security");
 
-// GET /api/statistics - Overall statistics for coaches
+/**
+ * GET /api/statistics - Overall statistics for coaches (Verified users only)
+ * Returns submission statistics organized by event and school year
+ */
 statisticsRouter.get("/", userExtractor, async (request, response) => {
-  if (!request.user) {
-    return response.status(401).json({ error: "unauthorized" });
+  // Ensure user is authenticated and verified
+  if (!request.user || !request.user.verified) {
+    return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
   try {
     // Get all available school years from submissions
     const schoolYears = await Submission.distinct("schoolYear");
     
-    // Get school year from query params, default to most recent
-    const requestedYear = request.query.schoolYear || schoolYears.sort().reverse()[0];
+    // Get school year from query params with sanitization, default to most recent
+    const sanitizedQuery = sanitizeInput(request.query);
+    const requestedYear = sanitizedQuery.schoolYear || schoolYears.sort().reverse()[0];
     
     if (!requestedYear) {
       return response.json({
@@ -68,15 +74,19 @@ statisticsRouter.get("/", userExtractor, async (request, response) => {
       eventStatistics
     });
   } catch (error) {
-    console.error("Error getting statistics:", error);
-    return response.status(500).json({ error: "internal server error" });
+    const errorResponse = handleError(error, 'Failed to retrieve statistics');
+    return response.status(errorResponse.error.statusCode).json(errorResponse);
   }
 });
 
-// GET /api/statistics/:id - Individual student statistics
+/**
+ * GET /api/statistics/:id - Individual student statistics (Verified users only)
+ * Returns detailed statistics for a specific student
+ */
 statisticsRouter.get("/:id", userExtractor, async (request, response) => {
-  if (!request.user) {
-    return response.status(401).json({ error: "unauthorized" });
+  // Ensure user is authenticated and verified
+  if (!request.user || !request.user.verified) {
+    return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
   const { id } = request.params;

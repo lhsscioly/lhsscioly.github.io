@@ -776,7 +776,7 @@ const TakeTest = ({
     return (
       <div className="flex flex-col justify-center items-center p-20 bg-white space-y-10 rounded-lg">
         <h1 className="text-3xl font-bold text-orange-800">
-          {test.random ? "Random Test" : `${test.school} ${test.year}`} —{" "}
+          {test.random ? "Random Test" : `${test.school || ''} ${test.year || ''}`.trim() || "Test"} —{" "}
           {test.event} Practice Test
         </h1>
         {!teamId ? (

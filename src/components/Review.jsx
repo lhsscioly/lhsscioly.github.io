@@ -968,7 +968,7 @@ const Review = ({ user }) => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-orange-800">
-            {test.random ? "Random Test" : `${test.school} ${test.year}`} —{" "}
+            {test.random ? "Random Test" : `${test.school || ''} ${test.year || ''}`.trim() || "Test"} —{" "}
             {test.event} Review
           </h2>
           <div className="text-right">

@@ -29,8 +29,16 @@ mongoose
     logger.error("error connecting to MongoDB:", error.message);
   });
 
-app.use(cors());
-app.use(express.json());
+// Configure CORS to only allow requests from the official domain
+app.use(cors({
+  origin: ['https://lhsscioly.github.io'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Limit request size to prevent DoS attacks
+app.use(express.json({ limit: '10mb' }));
 app.use(middleware.tokenExtractor);
 //app.use(express.static("dist"));
 app.use("/api/users", usersRouter);

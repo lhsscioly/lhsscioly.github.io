@@ -2,24 +2,37 @@ const answersRouter = require("express").Router();
 const Answer = require("../models/answer");
 const Test = require("../models/test");
 const { userExtractor } = require("../utils/middleware");
+const { handleError, createErrorResponse, isValidObjectId, sanitizeInput } = require("../utils/security");
 
-// POST /api/answers - Create initial answer document for a team taking a test
+/**
+ * POST /api/answers - Create initial answer document for a team taking a test (Verified users only)
+ * Creates a new answer document with proper validation and security checks
+ */
 answersRouter.post("/", userExtractor, async (request, response) => {
-  if (!request.user) {
-    return response.status(401).json({ error: "unauthorized" });
+  // Ensure user is authenticated and verified
+  if (!request.user || !request.user.verified) {
+    return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
-  const { testId, teamId, answers = {}, drawings = {}, timeLeft = 0 } = request.body;
+  // Sanitize and validate input
+  const sanitizedBody = sanitizeInput(request.body);
+  const { testId, teamId, answers = {}, drawings = {}, timeLeft = 0 } = sanitizedBody;
 
+  // Validate required fields
   if (!testId || !teamId) {
-    return response.status(400).json({ error: "testId and teamId are required" });
+    return response.status(400).json(createErrorResponse('testId and teamId are required', 400, 'MISSING_REQUIRED_FIELDS'));
+  }
+
+  // Validate ObjectId formats
+  if (!isValidObjectId(testId) || !isValidObjectId(teamId)) {
+    return response.status(400).json(createErrorResponse('Invalid ID format', 400, 'INVALID_ID'));
   }
 
   try {
     // Check if test exists
     const test = await Test.findById(testId);
     if (!test) {
-      return response.status(404).json({ error: "test not found" });
+      return response.status(404).json(createErrorResponse('Test not found', 404, 'TEST_NOT_FOUND'));
     }
 
     // Check if answers already exist for this team/test combination
@@ -29,10 +42,10 @@ answersRouter.post("/", userExtractor, async (request, response) => {
     });
 
     if (existingAnswers) {
-      return response.status(409).json({ error: "answers already exist for this team/test" });
+      return response.status(409).json(createErrorResponse('Answers already exist for this team/test combination', 409, 'ANSWERS_EXIST'));
     }
 
-    // Create new answer document
+    // Create new answer document with validated data
     const answerObject = new Answer({
       user: request.user.id,
       test: testId,
@@ -46,18 +59,27 @@ answersRouter.post("/", userExtractor, async (request, response) => {
     const savedAnswer = await answerObject.save();
     return response.status(201).json(savedAnswer);
   } catch (error) {
-    console.error("Error creating answers:", error);
-    return response.status(500).json({ error: "internal server error" });
+    const errorResponse = handleError(error, 'Failed to create answer document');
+    return response.status(errorResponse.error.statusCode).json(errorResponse);
   }
 });
 
-// GET /api/answers/:testId/:teamId - Get answers for a specific team taking a test
+/**
+ * GET /api/answers/:testId/:teamId - Get answers for a specific team taking a test (Verified users only)
+ * Retrieves answer document with real-time calculation and proper validation
+ */
 answersRouter.get("/:testId/:teamId", userExtractor, async (request, response) => {
-  if (!request.user) {
-    return response.status(401).json({ error: "unauthorized" });
+  // Ensure user is authenticated and verified
+  if (!request.user || !request.user.verified) {
+    return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
   const { testId, teamId } = request.params;
+
+  // Validate ObjectId formats
+  if (!isValidObjectId(testId) || !isValidObjectId(teamId)) {
+    return response.status(400).json(createErrorResponse('Invalid ID format', 400, 'INVALID_ID'));
+  }
 
   try {
     const answers = await Answer.findOne({
@@ -68,7 +90,7 @@ answersRouter.get("/:testId/:teamId", userExtractor, async (request, response) =
       .populate("user", "username");
 
     if (!answers) {
-      return response.status(404).json({ error: "answers not found" });
+      return response.status(404).json(createErrorResponse('Answers not found', 404, 'ANSWERS_NOT_FOUND'));
     }
 
     // Calculate actual time left based on elapsed time
@@ -82,19 +104,31 @@ answersRouter.get("/:testId/:teamId", userExtractor, async (request, response) =
 
     return response.json(answers);
   } catch (error) {
-    console.error("Error getting answers:", error);
-    return response.status(500).json({ error: "internal server error" });
+    const errorResponse = handleError(error, 'Failed to retrieve answers');
+    return response.status(errorResponse.error.statusCode).json(errorResponse);
   }
 });
 
-// PUT /api/answers/:testId/:teamId - Update answers for a specific team taking a test
+/**
+ * PUT /api/answers/:testId/:teamId - Update answers for a specific team taking a test (Verified users only)
+ * Updates answer document with timestamp tracking and proper validation
+ */
 answersRouter.put("/:testId/:teamId", userExtractor, async (request, response) => {
-  if (!request.user) {
-    return response.status(401).json({ error: "unauthorized" });
+  // Ensure user is authenticated and verified
+  if (!request.user || !request.user.verified) {
+    return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
   const { testId, teamId } = request.params;
-  const { answers = {}, drawings = {}, timeLeft } = request.body;
+
+  // Validate ObjectId formats
+  if (!isValidObjectId(testId) || !isValidObjectId(teamId)) {
+    return response.status(400).json(createErrorResponse('Invalid ID format', 400, 'INVALID_ID'));
+  }
+
+  // Sanitize input data
+  const sanitizedBody = sanitizeInput(request.body);
+  const { answers = {}, drawings = {}, timeLeft } = sanitizedBody;
 
   try {
     const existingAnswers = await Answer.findOne({
@@ -103,10 +137,10 @@ answersRouter.put("/:testId/:teamId", userExtractor, async (request, response) =
     });
 
     if (!existingAnswers) {
-      return response.status(404).json({ error: "answers not found" });
+      return response.status(404).json(createErrorResponse('Answers not found', 404, 'ANSWERS_NOT_FOUND'));
     }
 
-    // Update the answers
+    // Update the answers with sanitized data
     const currentTime = new Date();
     existingAnswers.answers = new Map(Object.entries(answers));
     existingAnswers.drawings = new Map(Object.entries(drawings));
@@ -207,15 +241,19 @@ answersRouter.patch("/:testId/:teamId", userExtractor, async (request, response)
 
     return response.json(existingAnswers);
   } catch (error) {
-    console.error("Error updating specific answer:", error);
-    return response.status(500).json({ error: "internal server error" });
+    const errorResponse = handleError(error, 'Failed to update specific answer');
+    return response.status(errorResponse.error.statusCode).json(errorResponse);
   }
 });
 
-// GET /api/answers - Get all answers
+/**
+ * GET /api/answers - Get all answers (Admin only, must be verified)
+ * Returns all answer documents in the system
+ */
 answersRouter.get("/", userExtractor, async (request, response) => {
-  if (!request.user) {
-    return response.status(401).json({ error: "unauthorized" });
+  // Ensure user is authenticated, verified, and is admin
+  if (!request.user || !request.user.verified || !request.user.admin) {
+    return response.status(401).json(createErrorResponse('Admin access required and email must be verified', 401, 'UNAUTHORIZED'));
   }
 
   try {
@@ -226,8 +264,8 @@ answersRouter.get("/", userExtractor, async (request, response) => {
 
     return response.json(answers);
   } catch (error) {
-    console.error("Error getting all answers:", error);
-    return response.status(500).json({ error: "internal server error" });
+    const errorResponse = handleError(error, 'Failed to retrieve all answers');
+    return response.status(errorResponse.error.statusCode).json(errorResponse);
   }
 });
 

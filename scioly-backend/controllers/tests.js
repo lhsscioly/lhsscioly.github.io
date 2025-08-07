@@ -4,41 +4,74 @@ const Test = require("../models/test");
 const Team = require("../models/team");
 const Submission = require("../models/submission");
 const { userExtractor } = require("../utils/middleware");
+const { handleError, createErrorResponse, isValidObjectId, sanitizeInput } = require("../utils/security");
 
+/**
+ * GET /api/tests - Get all tests (Verified users only)
+ * Returns all tests in the system with populated question and assignee data
+ */
 testsRouter.get("/", userExtractor, async (request, response) => {
-  if (!request.user) {
-    return response.status(401).json({ error: "unauthorized" });
+  // Ensure user is authenticated and verified
+  if (!request.user || !request.user.verified) {
+    return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
-  const tests = await Test.find({})
-    .populate("questions")
-    .populate("assignees", "name");
-  return response.json(tests);
+  try {
+    const tests = await Test.find({})
+      .populate("questions")
+      .populate("assignees", "name");
+    
+    return response.json(tests);
+  } catch (error) {
+    const errorResponse = handleError(error, 'Failed to retrieve tests');
+    return response.status(errorResponse.error.statusCode).json(errorResponse);
+  }
 });
 
+/**
+ * GET /api/tests/:id - Get specific test by ID (Verified users only)
+ * Returns a single test with populated question and assignee data
+ */
 testsRouter.get("/:id", userExtractor, async (request, response) => {
-  const id = request.params.id;
-
-  if (!request.user) {
-    return response.status(401).json({ error: "unauthorized" });
+  // Ensure user is authenticated and verified
+  if (!request.user || !request.user.verified) {
+    return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
-  const test = await Test.findOne({ _id: id })
-    .populate("questions")
-    .populate("assignees", "name");
-  if (test) {
+  // Validate ObjectId format
+  if (!isValidObjectId(request.params.id)) {
+    return response.status(400).json(createErrorResponse('Invalid test ID format', 400, 'INVALID_ID'));
+  }
+
+  try {
+    const test = await Test.findById(request.params.id)
+      .populate("questions")
+      .populate("assignees", "name");
+    
+    if (!test) {
+      return response.status(404).json(createErrorResponse('Test not found', 404, 'NOT_FOUND'));
+    }
+    
     return response.json(test);
-  } else {
-    return response.status(404).json({ error: "test not found" });
+  } catch (error) {
+    const errorResponse = handleError(error, 'Failed to retrieve test');
+    return response.status(errorResponse.error.statusCode).json(errorResponse);
   }
 });
 
+/**
+ * POST /api/tests - Create new test (Admin only)
+ * Creates a new test with specified parameters and question assignments
+ */
 testsRouter.post("/", userExtractor, async (request, response) => {
+  // Ensure user is authenticated and is admin
   if (!request.user || !request.user.admin) {
-    return response.status(401).json({ error: "unauthorized" });
+    return response.status(401).json(createErrorResponse('Admin access required', 401, 'UNAUTHORIZED'));
   }
 
-  const { event, random, school, year, questions } = request.body;
+  // Sanitize and validate input
+  const sanitizedBody = sanitizeInput(request.body);
+  const { event, random, school, year, questions } = sanitizedBody;
 
   try {
     const testObject = new Test({
@@ -57,62 +90,77 @@ testsRouter.post("/", userExtractor, async (request, response) => {
 
     return response.status(201).json(populatedTest);
   } catch (error) {
-    return response.status(400).json({ error: error.message });
+    const errorResponse = handleError(error, 'Failed to create test');
+    return response.status(errorResponse.error.statusCode).json(errorResponse);
   }
 });
 
+/**
+ * PUT /api/tests/:id - Update test assignees (Verified users only)
+ * Updates the teams assigned to a specific test with submission validation
+ */
 testsRouter.put("/:id", userExtractor, async (request, response) => {
-  const id = request.params.id;
-
-  const { assignees } = request.body;
-
-  if (!request.user) {
-    return response.status(401).json({ error: "unauthorized" });
+  // Ensure user is authenticated and verified
+  if (!request.user || !request.user.verified) {
+    return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
-  const test = await Test.findOne({ _id: id });
-  if (!test) {
-    return response.status(404).json({ error: "test not found" });
+  // Validate ObjectId format
+  if (!isValidObjectId(request.params.id)) {
+    return response.status(400).json(createErrorResponse('Invalid test ID format', 400, 'INVALID_ID'));
   }
 
-  // Check if any of the teams already have submissions for this event
-  if (assignees && assignees.length > 0) {
-    try {
-      // Find all tests for this event
-      const testsForEvent = await Test.find({ 
-        event: test.event 
-      }, '_id');
-
-      const testIds = testsForEvent.map(t => t._id);
-
-      const existingSubmissions = await Submission.find({
-        team: { $in: assignees },
-        test: { $in: testIds }
-      }).populate('team', 'name');
-
-      if (existingSubmissions.length > 0) {
-        const teamNames = existingSubmissions.map(sub => sub.team.name).join(', ');
-        return response.status(409).json({ 
-          error: `Team(s) have already submitted tests for event ${test.event}: ${teamNames}` 
-        });
-      }
-    } catch (error) {
-      console.error("Error checking existing submissions:", error);
-      return response.status(500).json({ error: "internal server error" });
-    }
-  }
-
-  test.assignees = assignees;
+  // Sanitize input
+  const sanitizedBody = sanitizeInput(request.body);
+  const { assignees } = sanitizedBody;
 
   try {
+    const test = await Test.findById(request.params.id);
+    if (!test) {
+      return response.status(404).json(createErrorResponse('Test not found', 404, 'NOT_FOUND'));
+    }
+
+    // Check if any of the teams already have submissions for this event to prevent conflicts
+    if (assignees && assignees.length > 0) {
+      try {
+        // Find all tests for this event to check for existing submissions
+        const testsForEvent = await Test.find({ 
+          event: test.event 
+        }, '_id');
+
+        const testIds = testsForEvent.map(t => t._id);
+
+        const existingSubmissions = await Submission.find({
+          team: { $in: assignees },
+          test: { $in: testIds }
+        }).populate('team', 'name');
+
+        if (existingSubmissions.length > 0) {
+          const teamNames = existingSubmissions.map(sub => sub.team.name).join(', ');
+          return response.status(409).json(createErrorResponse(
+            `Team(s) have already submitted tests for event ${test.event}: ${teamNames}`,
+            409,
+            'SUBMISSION_CONFLICT'
+          ));
+        }
+      } catch (error) {
+        const errorResponse = handleError(error, 'Failed to check existing submissions');
+        return response.status(errorResponse.error.statusCode).json(errorResponse);
+      }
+    }
+
+    // Update test assignees with validated team IDs
+    test.assignees = assignees;
+
     const savedTest = await test.save();
     const populatedTest = await Test.findById(savedTest._id)
       .populate("questions")
       .populate("assignees", "name");
 
-    return response.status(201).json(populatedTest);
+    return response.status(200).json(populatedTest);
   } catch (error) {
-    return response.status(400).json({ error: error.message });
+    const errorResponse = handleError(error, 'Failed to update test');
+    return response.status(errorResponse.error.statusCode).json(errorResponse);
   }
 });
 

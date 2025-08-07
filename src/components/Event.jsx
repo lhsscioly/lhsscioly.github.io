@@ -7,7 +7,8 @@ const Event = (props) => {
   const [group, setGroup] = useState(props.event.group);
   const [description, setDescription] = useState(props.event.description);
   const [resource, setResource] = useState("");
-  const [resources, setResources] = useState(props.event.resources);
+  const [resourceName, setResourceName] = useState("");
+  const [resources, setResources] = useState(props.event.resources || []);
 
   const editEvent = async (e) => {
     e.preventDefault();
@@ -26,9 +27,13 @@ const Event = (props) => {
   };
 
   const addResource = () => {
-    if (resource.trim()) {
-      setResources(resources.concat(resource.trim()));
+    if (resource.trim() && resourceName.trim()) {
+      setResources(resources.concat({ 
+        name: resourceName.trim(), 
+        url: resource.trim() 
+      }));
       setResource("");
+      setResourceName("");
     }
   };
 
@@ -125,23 +130,24 @@ const Event = (props) => {
           <div>
             <p className="text-sm font-medium text-gray-900 mb-1">Resources:</p>
             <div className="flex flex-wrap gap-2">
-              {resources.map((r) => (
+              {resources.map((r, index) => (
                 <div
-                  key={r}
+                  key={index}
                   className="flex items-center bg-orange-100 text-orange-800 text-xs font-medium px-3 py-1 rounded-full shadow hover:bg-orange-200 transition"
                 >
                   <a
-                    href={r}
+                    href={typeof r === 'string' ? r : r.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="truncate max-w-[140px] hover:underline"
+                    title={typeof r === 'string' ? r : r.url}
                   >
-                    {r}
+                    {typeof r === 'string' ? r : r.name}
                   </a>
                   <button
                     type="button"
                     onClick={() =>
-                      setResources(resources.filter((res) => res !== r))
+                      setResources(resources.filter((_, i) => i !== index))
                     }
                     className="ml-2 text-gray-500 text-lg hover:text-red-600 font-bold"
                     title="Remove"
@@ -156,8 +162,17 @@ const Event = (props) => {
             <label className="block text-sm font-medium text-orange-800 mb-1">
               Add Resource
             </label>
+            <div className="flex gap-2 mb-2">
+              <input
+                placeholder="Resource Name"
+                value={resourceName}
+                onChange={({ target }) => setResourceName(target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+            </div>
             <div className="flex gap-2">
               <input
+                placeholder="Resource URL"
                 value={resource}
                 onChange={({ target }) => setResource(target.value)}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
@@ -210,19 +225,20 @@ const Event = (props) => {
           {props.event.description}
         </p>
 
-        {props.user ? (
+        {props.user && props.event.resources && props.event.resources.length > 0 ? (
           <div>
             <p className="text-sm font-medium text-gray-900 mb-1">Resources:</p>
             <div className="flex flex-wrap gap-2">
-              {props.event.resources.map((r) => (
+              {props.event.resources.map((r, index) => (
                 <a
-                  key={r}
-                  href={r}
+                  key={index}
+                  href={typeof r === 'string' ? r : r.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-3 py-1 rounded-full shadow hover:bg-orange-200 transition"
+                  title={typeof r === 'string' ? r : r.url}
                 >
-                  {r}
+                  {typeof r === 'string' ? r : r.name}
                 </a>
               ))}
             </div>

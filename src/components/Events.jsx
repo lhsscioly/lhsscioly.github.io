@@ -12,6 +12,7 @@ const Events = (props) => {
   const [block, setBlock] = useState("");
   const [description, setDescription] = useState("");
   const [resource, setResource] = useState("");
+  const [resourceName, setResourceName] = useState("");
   const [resources, setResources] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -28,9 +29,13 @@ const Events = (props) => {
   }, [filter, props.events]);
 
   const addResource = () => {
-    if (resource.trim()) {
-      setResources(resources.concat(resource.trim()));
+    if (resource.trim() && resourceName.trim()) {
+      setResources(resources.concat({ 
+        name: resourceName.trim(), 
+        url: resource.trim() 
+      }));
       setResource("");
+      setResourceName("");
     }
   };
 
@@ -50,6 +55,7 @@ const Events = (props) => {
       setGroup("");
       setDescription("");
       setResource("");
+      setResourceName("");
       setResources([]);
       setModalOpen(false);
       setFilter("");
@@ -223,8 +229,17 @@ const Events = (props) => {
             <label className="block text-sm font-medium text-orange-800 mb-1">
               Add Resource
             </label>
+            <div className="flex gap-2 mb-2">
+              <input
+                placeholder="Resource Name"
+                value={resourceName}
+                onChange={({ target }) => setResourceName(target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+            </div>
             <div className="flex gap-2">
               <input
+                placeholder="Resource URL"
                 value={resource}
                 onChange={({ target }) => setResource(target.value)}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
@@ -242,22 +257,23 @@ const Events = (props) => {
           <div className="mt-4 space-y-2">
             {resources.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {resources.map((r) => (
+                {resources.map((r, index) => (
                   <div
-                    key={r}
+                    key={index}
                     className="flex items-center bg-orange-100 text-orange-800 text-xs font-medium px-3 py-1 rounded-full shadow hover:bg-orange-200 transition"
                   >
                     <a
-                      href={r}
+                      href={typeof r === 'string' ? r : r.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="truncate max-w-[140px] hover:underline"
+                      title={typeof r === 'string' ? r : r.url}
                     >
-                      {r}
+                      {typeof r === 'string' ? r : r.name}
                     </a>
                     <button
                       onClick={() =>
-                        setResources(resources.filter((res) => res !== r))
+                        setResources(resources.filter((_, i) => i !== index))
                       }
                       className="ml-2 text-gray-500 text-lg hover:text-red-600 font-bold"
                       title="Remove"

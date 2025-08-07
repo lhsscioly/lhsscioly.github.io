@@ -9,7 +9,18 @@ const eventSchema = mongoose.Schema({
   group: String,
   block: String,
   description: String,
-  resources: [String],
+  resources: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      url: {
+        type: String,
+        required: true,
+      },
+    }
+  ],
 });
 
 eventSchema.set("toJSON", {

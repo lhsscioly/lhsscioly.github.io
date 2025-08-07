@@ -79,7 +79,8 @@ usersRouter.post("/", async (request, response) => {
 
     const savedUser = await userObject.save();
 
-    const transporter = nodemailer.createTransport({
+    // Send verification email with proper error handling
+    const transporter = nodemailer.createTransporter({
       service: "Gmail",
       auth: {
         user: config.EMAIL_USER,
@@ -95,7 +96,7 @@ usersRouter.post("/", async (request, response) => {
         html: `
                     <p>Hello ${firstName},</p>
                     <p>Please verify your email by clicking the link below:</p>
-                    <a href="https://shubhvarshney.github.io/lhsscioly/#/verify?token=${verificationToken}">Verify Email</a>
+                    <a href="https://lhsscioly.github.io/#/verify?token=${verificationToken}">Verify Email</a>
                 `,
       });
     } catch (error) {
@@ -130,12 +131,14 @@ usersRouter.post("/forgot", async (req, res) => {
     return res.status(400).json({ error: "No user with that email" });
   }
 
+  // Generate secure reset token with expiration
   const token = crypto.randomUUID();
   user.resetPasswordToken = token;
   user.resetPasswordExpires = Date.now() + 1000 * 60 * 15; // 15 minutes
   await user.save();
 
-  const resetLink = `https://shubhvarshney.github.io/lhsscioly/#/reset?token=${token}`;
+  // Use correct domain for reset link
+  const resetLink = `https://lhsscioly.github.io/#/reset?token=${token}`;
 
   const transporter = nodemailer.createTransport({
     service: "Gmail",

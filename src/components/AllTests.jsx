@@ -268,7 +268,9 @@ const AllTestsContent = ({ user }) => {
                           <p className="text-sm text-green-700 font-semibold">
                             {submission.test?.random
                               ? `Random Test - ${submission.test?.event}`
-                              : `${submission.test?.school} ${submission.test?.year} - ${submission.test?.event}`}
+                              : `${submission.test?.school || ''} ${submission.test?.year || ''}`.trim() 
+                                ? `${submission.test?.school || ''} ${submission.test?.year || ''}`.trim() + ` - ${submission.test?.event}`
+                                : `Test - ${submission.test?.event}`}
                           </p>
                           <p className="text-xs text-green-600">
                             Team: {submission.team?.name} • Score:{" "}
@@ -362,7 +364,9 @@ const AllTestsContent = ({ user }) => {
                           <p className="text-sm text-orange-700 font-semibold">
                             {submission.test?.random
                               ? `Random Test - ${submission.test?.event}`
-                              : `${submission.test?.school} ${submission.test?.year} - ${submission.test?.event}`}
+                              : `${submission.test?.school || ''} ${submission.test?.year || ''}`.trim() 
+                                ? `${submission.test?.school || ''} ${submission.test?.year || ''}`.trim() + ` - ${submission.test?.event}`
+                                : `Test - ${submission.test?.event}`}
                           </p>
                           <p className="text-xs text-orange-600">
                             Team: {submission.team?.name}
@@ -446,7 +450,9 @@ const AllTestsContent = ({ user }) => {
                       <p className="text-sm text-red-700 font-semibold">
                         {test.random
                           ? `Random Test - ${test.event}`
-                          : `${test.school} ${test.year} - ${test.event}`}
+                          : `${test.school || ''} ${test.year || ''}`.trim() 
+                            ? `${test.school || ''} ${test.year || ''}`.trim() + ` - ${test.event}`
+                            : `Test - ${test.event}`}
                       </p>
                       <p className="text-xs text-red-600">
                         Assigned to {test.assignees.length} team(s):{" "}

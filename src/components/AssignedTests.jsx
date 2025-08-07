@@ -110,7 +110,9 @@ const AssignedTests = ({ tests, user, users, teams }) => {
                   <p className="text-sm text-orange-700 font-semibold">
                     {test.random
                       ? `Random Test - ${test.event}`
-                      : `${test.school} ${test.year} - ${test.event}`}
+                      : `${test.school || ''} ${test.year || ''}`.trim() 
+                        ? `${test.school || ''} ${test.year || ''}`.trim() + ` - ${test.event}`
+                        : `Test - ${test.event}`}
                   </p>
                   {testStates[test.id] === "submitted" && (
                     <p className="text-xs text-green-600 font-medium">
