@@ -80,7 +80,7 @@ usersRouter.post("/", async (request, response) => {
     const savedUser = await userObject.save();
 
     // Send verification email with proper error handling
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: "Gmail",
       auth: {
         user: config.EMAIL_USER,
