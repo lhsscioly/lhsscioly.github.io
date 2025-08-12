@@ -1,20 +1,24 @@
 const mongoose = require('mongoose');
 
-// Input sanitization to prevent NoSQL injection
+// Input sanitization to prevent XSS, but do NOT alter arrays/objects/falsy values
 const sanitizeInput = (input) => {
   if (typeof input === 'string') {
-    // Remove potential NoSQL injection operators
-    return input.replace(/[${}]/g, '');
+    // Remove script tags and dangerous HTML, but do NOT remove valid characters
+    return input.replace(/<script.*?>.*?<\/script>/gi, '').replace(/<.*?on\w+\s*=.*?>/gi, '');
+  } else if (Array.isArray(input)) {
+    // Recursively sanitize array elements
+    return input.map(sanitizeInput);
   } else if (typeof input === 'object' && input !== null) {
-    // Recursively sanitize objects
+    // Recursively sanitize object fields, but do NOT remove fields or falsy values
     const sanitized = {};
     for (const key in input) {
-      if (input.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(input, key)) {
         sanitized[key] = sanitizeInput(input[key]);
       }
     }
     return sanitized;
   }
+  // Leave numbers, booleans, null, undefined, etc. untouched
   return input;
 };
 
