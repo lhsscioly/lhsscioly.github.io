@@ -1,5 +1,7 @@
 import apiClient from "./apiClient";
 
+// Handles all backend communication for individual and multiple users
+
 const baseUrl = "/api/users";
 
 let token = null;

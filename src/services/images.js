@@ -1,4 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+
+// Uses Supabase's buckets to handle image uploads for each test
+
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_API_KEY,

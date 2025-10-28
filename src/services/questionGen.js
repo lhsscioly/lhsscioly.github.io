@@ -1,7 +1,10 @@
 import { createPartFromUri, GoogleGenAI } from "@google/genai";
 
+// Gemini service to upload test pdfs and receive formatted test questions
+
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
+// The prompt to extract questions. As seen, it is redundant, but very specific to ensure accuracy
 const query = `
     # The following files given to you are a science olympiad invitational test and the answer/solutions.
     # Take all the questions and return them in an array of question JSON objects.

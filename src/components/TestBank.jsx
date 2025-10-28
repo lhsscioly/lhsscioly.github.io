@@ -1,12 +1,15 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 
+// UI component for displaying all available tests
+
 const TestBank = (props) => {
   const [tests, setTests] = useState([]);
   const [eventFilter, setEventFilter] = useState("");
   const [schoolFilter, setSchoolFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
 
+  // Gathers all tests according to relevant selected filters
   useEffect(() => {
     const filtered = props.tests.filter(
       (t) =>
@@ -33,6 +36,7 @@ const TestBank = (props) => {
       <div className="bg-white border border-orange-200 rounded-md p-6 shadow-md">
         <h2 className="text-2xl font-medium text-orange-800 mb-6">Test Bank</h2>
 
+        {/* Filters */}
         <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex flex-col">
             <label className="mb-1 text-sm font-medium text-orange-800">
@@ -104,6 +108,8 @@ const TestBank = (props) => {
           </div>
         </div>
 
+        {/* List of tests */}
+        
         {tests.length > 0 ? (
           <div className="flex flex-col space-y-3">
             {tests.map((t) => (

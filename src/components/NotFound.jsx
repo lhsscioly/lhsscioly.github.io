@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+// UI component for 404 Not Found pages
 const NotFound = () => {
   return (
     <div className="flex flex-col items-center justify-center w-full h-[60vh] bg-white max-w-md mx-auto p-8 shadow-lg rounded-lg">

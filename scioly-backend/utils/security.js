@@ -1,15 +1,12 @@
 const mongoose = require('mongoose');
 
-// Input sanitization to prevent XSS, but do NOT alter arrays/objects/falsy values
+// Input sanitization
 const sanitizeInput = (input) => {
   if (typeof input === 'string') {
-    // Remove script tags and dangerous HTML, but do NOT remove valid characters
     return input.replace(/<script.*?>.*?<\/script>/gi, '').replace(/<.*?on\w+\s*=.*?>/gi, '');
   } else if (Array.isArray(input)) {
-    // Recursively sanitize array elements
     return input.map(sanitizeInput);
   } else if (typeof input === 'object' && input !== null) {
-    // Recursively sanitize object fields, but do NOT remove fields or falsy values
     const sanitized = {};
     for (const key in input) {
       if (Object.prototype.hasOwnProperty.call(input, key)) {
@@ -18,7 +15,6 @@ const sanitizeInput = (input) => {
     }
     return sanitized;
   }
-  // Leave numbers, booleans, null, undefined, etc. untouched
   return input;
 };
 
@@ -38,11 +34,9 @@ const createErrorResponse = (message, statusCode = 500, code = 'INTERNAL_ERROR')
   };
 };
 
-// Safe error handler that doesn't expose internal details
 const handleError = (error, customMessage = null) => {
   console.error('Error occurred:', error);
   
-  // Handle specific known errors
   if (error.name === 'ValidationError') {
     return createErrorResponse('Invalid data provided', 400, 'VALIDATION_ERROR');
   }
@@ -63,7 +57,6 @@ const handleError = (error, customMessage = null) => {
     return createErrorResponse('Token expired', 401, 'TOKEN_EXPIRED');
   }
   
-  // Default to generic error message for security
   return createErrorResponse(
     customMessage || 'An error occurred while processing your request',
     500,
@@ -71,7 +64,6 @@ const handleError = (error, customMessage = null) => {
   );
 };
 
-// Middleware to check resource ownership
 const checkResourceOwnership = (getResourceOwner) => {
   return async (request, response, next) => {
     try {
@@ -102,19 +94,17 @@ const checkResourceOwnership = (getResourceOwner) => {
   };
 };
 
-// Rate limiting configuration
 const rateLimitConfig = {
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 };
 
-// Strict rate limiting for auth endpoints
 const authRateLimitConfig = {
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs for auth
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   message: 'Too many login attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,

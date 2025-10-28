@@ -1,6 +1,7 @@
 import { useState } from "react";
 import testService from "../services/tests";
 
+// UI component to generate more customized random tests from question bank
 const RandomTest = (props) => {
   const [event, setEvent] = useState("");
   const [questions, setQuestions] = useState([]);
@@ -18,6 +19,7 @@ const RandomTest = (props) => {
     );
   }
 
+  // Ask for various question types and validate inputs
   const create = async () => {
     if (!event) {
       props.setError("Please select an event.");
@@ -70,6 +72,7 @@ const RandomTest = (props) => {
     }
   };
 
+  // Assign to teams in selected event, like in the Test component
   const handleAssign = async () => {
     if (questions.length === 0) {
       props.setError("No questions generated to assign.");

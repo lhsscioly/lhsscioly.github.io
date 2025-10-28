@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import statisticsService from "../services/statistics";
 
+// UI component to display an individual student's statistics
+
 const UserStatistics = ({ user }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -9,29 +11,31 @@ const UserStatistics = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [studentStats, setStudentStats] = useState(null);
 
-  // Check if user came from /statistics page
+  // Since admins and students have a different view, these next few functions help
+  // implement conditional rendering
+
   const [cameFromStatistics, setCameFromStatistics] = useState(false);
 
   useEffect(() => {
-    // Check if the user came from the /statistics page using navigation state
     const stateFrom = location.state?.from;
     const cameFromStats = stateFrom === "/statistics";
     setCameFromStatistics(cameFromStats);
   }, [location]);
+
+  // Handles statistics fetching
+  // Due to the noticeable delay in calculating this data, loading is implemented
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // Ensure token is set before making API calls
         const loggedUser = localStorage.getItem("loggedAppUser");
         if (loggedUser) {
           const userData = JSON.parse(loggedUser);
           statisticsService.setToken(userData.token);
         }
 
-        // Get the user ID - if no ID in params, use current user's ID
         let userId = id;
 
         if (userId) {
@@ -98,7 +102,7 @@ const UserStatistics = ({ user }) => {
         )}
       </div>
 
-      {/* Summary Cards */}
+      {/* Various summary cards for statistics defined as essential by us */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-orange-700 mb-2">
@@ -142,7 +146,6 @@ const UserStatistics = ({ user }) => {
         </div>
       </div>
 
-      {/* Event Statistics */}
       {studentStats.eventStatistics.length > 0 && (
         <div className="bg-white rounded-lg shadow-md mb-8 pb-6">
           <div className="px-6 py-4 border-b border-orange-200">
@@ -210,7 +213,7 @@ const UserStatistics = ({ user }) => {
         </div>
       )}
 
-      {/* School Year Breakdown */}
+      {/* Breaks down statistics over school year for the future */}
       {studentStats.schoolYearStatistics.length > 0 && (
         <div className="bg-white rounded-lg shadow-md">
           <div className="px-6 py-4 border-b border-orange-200">

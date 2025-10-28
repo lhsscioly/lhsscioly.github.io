@@ -3,29 +3,20 @@ const eventsRouter = require("express").Router();
 const { userExtractor, optionalUserExtractor } = require("../utils/middleware");
 const { handleError, createErrorResponse, isValidObjectId, sanitizeInput } = require("../utils/security");
 
-/**
- * GET /api/events - Get all events with conditional access based on authentication and verification
- * - Unauthenticated users: Get public event data (no resources)
- * - Authenticated but unverified users: Get public event data (no resources) 
- * - Verified users: Get full event data including resources
- */
 eventsRouter.get("/", optionalUserExtractor, async (request, response) => {
   try {
     const events = await Event.find({});
     
-    // If user is authenticated AND verified, return all event data including resources
     if (request.user && request.user.verified) {
       return response.json(events);
     }
     
-    // If user is not authenticated OR not verified, return event data without resources
     const publicEvents = events.map(event => ({
       id: event.id,
       name: event.name,
       group: event.group,
       block: event.block,
       description: event.description,
-      // resources field omitted for unauthenticated/unverified users
     }));
     
     return response.json(publicEvents);
@@ -35,17 +26,11 @@ eventsRouter.get("/", optionalUserExtractor, async (request, response) => {
   }
 });
 
-/**
- * POST /api/events - Create new event (Admin only, must be verified)
- * Creates a new event with proper validation and security checks
- */
 eventsRouter.post("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated, verified, and is admin
   if (!request.user || !request.user.verified || !request.user.admin) {
     return response.status(401).json(createErrorResponse('Admin access required and email must be verified', 401, 'UNAUTHORIZED'));
   }
 
-  // Sanitize and validate input
   const sanitizedBody = sanitizeInput(request.body);
   const { name, group, block, description, resources } = sanitizedBody;
 
@@ -72,22 +57,15 @@ eventsRouter.post("/", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * PUT /api/events/:id - Update event (Admin only, must be verified)
- * Updates an existing event with proper validation and security checks
- */
 eventsRouter.put("/:id", userExtractor, async (request, response) => {
-  // Ensure user is authenticated, verified, and is admin
   if (!request.user || !request.user.verified || !request.user.admin) {
     return response.status(401).json(createErrorResponse('Admin access required and email must be verified', 401, 'UNAUTHORIZED'));
   }
 
-  // Validate ObjectId format
   if (!isValidObjectId(request.params.id)) {
     return response.status(400).json(createErrorResponse('Invalid event ID format', 400, 'INVALID_ID'));
   }
 
-  // Sanitize and validate input
   const sanitizedBody = sanitizeInput(request.body);
   const { name, group, block, description, resources } = sanitizedBody;
 
@@ -98,7 +76,6 @@ eventsRouter.put("/:id", userExtractor, async (request, response) => {
       return response.status(404).json(createErrorResponse('Event not found', 404, 'NOT_FOUND'));
     }
 
-    // Update event fields with sanitized data
     eventObject.name = name;
     eventObject.group = group;
     eventObject.block = block;
@@ -113,17 +90,11 @@ eventsRouter.put("/:id", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * DELETE /api/events/:id - Delete event (Admin only, must be verified)
- * Deletes an event with proper validation and security checks
- */
 eventsRouter.delete("/:id", userExtractor, async (request, response) => {
-  // Ensure user is authenticated, verified, and is admin
   if (!request.user || !request.user.verified || !request.user.admin) {
     return response.status(401).json(createErrorResponse('Admin access required and email must be verified', 401, 'UNAUTHORIZED'));
   }
 
-  // Validate ObjectId format
   if (!isValidObjectId(request.params.id)) {
     return response.status(400).json(createErrorResponse('Invalid event ID format', 400, 'INVALID_ID'));
   }

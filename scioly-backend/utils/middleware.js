@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
+// Middleware to extract various user info
+
 const tokenExtractor = (request, response, next) => {
   const authorization = request.get("authorization");
   if (authorization && authorization.startsWith("Bearer ")) {
@@ -28,7 +30,6 @@ const userExtractor = async (request, response, next) => {
   next();
 };
 
-// Like userExtractor, but does not return 401 if no/invalid token; just sets request.user = null
 const optionalUserExtractor = async (request, response, next) => {
   try {
     if (!request.token) {

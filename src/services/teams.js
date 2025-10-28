@@ -1,5 +1,7 @@
 import apiClient from "./apiClient";
 
+// Handles all backend communication for the teams for each event
+
 const baseUrl = "/api/teams";
 
 let token = null;

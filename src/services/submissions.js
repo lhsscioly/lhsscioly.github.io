@@ -2,6 +2,8 @@ import apiClient from "./apiClient";
 
 const baseUrl = "/api/submissions";
 
+// Handles all backend communication for test submissions
+
 let token = null;
 
 const setToken = (newToken) => {

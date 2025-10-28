@@ -8,12 +8,6 @@ const { handleError, createErrorResponse, isValidObjectId, checkResourceOwnershi
 
 const submissionsRouter = express.Router();
 
-/**
- * Helper function to calculate Multiple Choice Question (MCQ) scores
- * @param {Object} test - The test object containing questions
- * @param {Object} answers - The answers object containing user responses
- * @returns {Object} Object containing score and breakdown of correct/incorrect answers
- */
 const calculateMCQScore = (test, answers) => {
   let score = 0;
   let correct = 0;
@@ -41,24 +35,12 @@ const calculateMCQScore = (test, answers) => {
   };
 };
 
-/**
- * Helper function to calculate total possible score for a test
- * @param {Object} test - The test object containing questions
- * @returns {number} Total possible points for the test
- */
 const calculateTotalPossibleScore = (test) => {
   return test.questions.reduce((total, question) => {
     return total + (question.points || 1);
   }, 0);
 };
 
-/**
- * Helper function to determine submission ownership for resource validation
- * Used by checkResourceOwnership middleware to verify access rights
- * @param {string} submissionId - The ID of the submission to check
- * @param {Object} user - The current user object
- * @returns {Promise<boolean>} True if user has access to the submission
- */
 const getSubmissionOwner = async (submissionId, user) => {
   try {
     const submission = await Submission.findById(submissionId)
@@ -75,22 +57,18 @@ const getSubmissionOwner = async (submissionId, user) => {
       return false;
     }
 
-    // Admin users can access any submission
     if (user.admin) {
       return true;
     }
 
-    // Check if user is the original submitter
     if (submission.user && submission.user.toString() === user.id) {
       return true;
     }
 
-    // Check if user is in the users array (participated in submission)
     if (submission.users && submission.users.some(u => u._id.toString() === user.id)) {
       return true;
     }
 
-    // Check if user is member of the team that made the submission
     if (submission.team && submission.team.students) {
       return submission.team.students.some(student => student._id.toString() === user.id);
     }
@@ -102,17 +80,11 @@ const getSubmissionOwner = async (submissionId, user) => {
   }
 };
 
-/**
- * GET /api/submissions - Get all submissions (Admin only)
- * Returns all submissions in the system with populated related data
- */
 submissionsRouter.get("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated
   if (!request.user) {
     return response.status(401).json(createErrorResponse('Authentication required', 401, 'UNAUTHORIZED'));
   }
 
-  // Only admins can view all submissions
   if (!request.user.admin) {
     return response.status(403).json(createErrorResponse('Admin access required', 403, 'FORBIDDEN'));
   }
@@ -139,12 +111,7 @@ submissionsRouter.get("/", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * GET /api/submissions/:id - Get specific submission with ownership validation
- * Users can only access submissions they participated in, admins can access any
- */
 submissionsRouter.get("/:id", userExtractor, checkResourceOwnership(getSubmissionOwner), async (request, response) => {
-  // Validate ObjectId format
   if (!isValidObjectId(request.params.id)) {
     return response.status(400).json(createErrorResponse('Invalid submission ID format', 400, 'INVALID_ID'));
   }
@@ -181,35 +148,23 @@ submissionsRouter.get("/:id", userExtractor, checkResourceOwnership(getSubmissio
   }
 });
 
-/**
- * POST /api/submissions - Create new submission from answers object (Authenticated users only)
- * Creates a new test submission with score calculation, validation, and team membership checks
- * @body {string} testId - The ID of the test being submitted
- * @body {string} teamId - The ID of the team making the submission
- * @body {number} finalTimeLeft - Time remaining when submission was made (default: 0)
- */
 submissionsRouter.post("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated
   if (!request.user) {
     return response.status(401).json(createErrorResponse('Authentication required', 401, 'UNAUTHORIZED'));
   }
 
-  // Sanitize and validate input
   const sanitizedBody = sanitizeInput(request.body);
   const { testId, teamId, finalTimeLeft = 0 } = sanitizedBody;
 
-  // Validate required fields
   if (!testId || !teamId) {
     return response.status(400).json(createErrorResponse('testId and teamId are required', 400, 'MISSING_REQUIRED_FIELDS'));
   }
 
-  // Validate ObjectId formats
   if (!isValidObjectId(testId) || !isValidObjectId(teamId)) {
     return response.status(400).json(createErrorResponse('Invalid ID format', 400, 'INVALID_ID'));
   }
 
   try {
-    // Find the answers object for this team/test combination
     const answers = await Answer.findOne({
       team: teamId,
       test: testId,
@@ -219,7 +174,6 @@ submissionsRouter.post("/", userExtractor, async (request, response) => {
       return response.status(404).json(createErrorResponse('Answers not found - team must take test first', 404, 'ANSWERS_NOT_FOUND'));
     }
 
-    // Check if submission already exists for this combination
     const existingSubmission = await Submission.findOne({
       answer: answers._id,
       test: testId,
@@ -230,19 +184,16 @@ submissionsRouter.post("/", userExtractor, async (request, response) => {
       return response.status(409).json(createErrorResponse('Submission already exists', 409, 'SUBMISSION_EXISTS'));
     }
 
-    // Get the test with questions to calculate MCQ score
     const test = await Test.findById(testId).populate('questions');
     if (!test) {
       return response.status(404).json(createErrorResponse('Test not found', 404, 'TEST_NOT_FOUND'));
     }
 
-    // Get the team to access students list and validate membership
     const team = await Team.findById(teamId).populate('students');
     if (!team) {
       return response.status(404).json(createErrorResponse('Team not found', 404, 'TEAM_NOT_FOUND'));
     }
 
-    // Verify user is member of the team (unless admin)
     if (!request.user.admin) {
       const isMember = team.students.some(student => student.id === request.user.id);
       if (!isMember) {
@@ -250,30 +201,26 @@ submissionsRouter.post("/", userExtractor, async (request, response) => {
       }
     }
 
-    // Calculate MCQ score automatically using helper function
     const mcqScore = calculateMCQScore(test, answers.answers);
     const totalPossibleScore = calculateTotalPossibleScore(test);
 
-    // Ensure schoolYear is set - use team's schoolYear or current school year as fallback
     const { getCurrentSchoolYear } = require("../utils/schoolYear");
     const submissionSchoolYear = team.schoolYear || getCurrentSchoolYear();
 
-    // Create submission with calculated MCQ score and proper validation
     const submission = new Submission({
       answer: answers._id,
       test: testId,
       team: teamId,
       user: request.user.id,
-      users: team.students, // All team members who participated in the test
-      schoolYear: submissionSchoolYear, // School year from team with fallback
+      users: team.students,
+      schoolYear: submissionSchoolYear,
       finalTimeLeft,
-      totalScore: mcqScore.score, // Start with MCQ score, manual scoring will be added later
+      totalScore: mcqScore.score,
       maxScore: totalPossibleScore,
     });
 
     const savedSubmission = await submission.save();
     
-    // Populate the saved submission with related data for response
     const populatedSubmission = await Submission.findById(savedSubmission._id)
       .populate("answer")
       .populate("test", "event school year")
@@ -295,31 +242,24 @@ submissionsRouter.post("/", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * GET /api/submissions/team/:teamId - Get all submissions for a team with ownership validation
- * Team members can view their team's submissions, admins can view any team's submissions
- */
+// Gets submissions for a team as opposed to the submission id
 submissionsRouter.get("/team/:teamId", userExtractor, async (request, response) => {
-  // Ensure user is authenticated
   if (!request.user) {
     return response.status(401).json(createErrorResponse('Authentication required', 401, 'UNAUTHORIZED'));
   }
 
   const { teamId } = request.params;
 
-  // Validate ObjectId format
   if (!isValidObjectId(teamId)) {
     return response.status(400).json(createErrorResponse('Invalid team ID format', 400, 'INVALID_ID'));
   }
 
   try {
-    // Verify team exists and user has access
     const team = await Team.findById(teamId).populate('students');
     if (!team) {
       return response.status(404).json(createErrorResponse('Team not found', 404, 'TEAM_NOT_FOUND'));
     }
 
-    // Check ownership - user must be team member or admin
     if (!request.user.admin) {
       const isMember = team.students.some(student => student.id === request.user.id);
       if (!isMember) {
@@ -340,7 +280,7 @@ submissionsRouter.get("/team/:teamId", userExtractor, async (request, response) 
       })
       .populate("user", "firstName lastName email")
       .populate("users", "firstName lastName email")
-      .sort({ submittedAt: -1 }); // Most recent submissions first
+      .sort({ submittedAt: -1 });
 
     response.json(teamSubmissions);
   } catch (error) {
@@ -349,19 +289,14 @@ submissionsRouter.get("/team/:teamId", userExtractor, async (request, response) 
   }
 });
 
-/**
- * GET /api/submissions/check/:testId/:teamId - Check if submission exists for test/team combination
- * Returns submission status to prevent duplicate submissions
- */
+// Checks for existing submissions given a test and a team
 submissionsRouter.get("/check/:testId/:teamId", userExtractor, async (request, response) => {
-  // Ensure user is authenticated
   if (!request.user) {
     return response.status(401).json(createErrorResponse('Authentication required', 401, 'UNAUTHORIZED'));
   }
 
   const { testId, teamId } = request.params;
 
-  // Validate ObjectId formats
   if (!isValidObjectId(testId) || !isValidObjectId(teamId)) {
     return response.status(400).json(createErrorResponse('Invalid ID format', 400, 'INVALID_ID'));
   }
@@ -379,17 +314,11 @@ submissionsRouter.get("/check/:testId/:teamId", userExtractor, async (request, r
   }
 });
 
-/**
- * PUT /api/submissions/:id - Update submission for self-grading with ownership validation
- * Allows users to update their own submissions with self-graded scores
- */
 submissionsRouter.put("/:id", userExtractor, checkResourceOwnership(getSubmissionOwner), async (request, response) => {
-  // Validate ObjectId format
   if (!isValidObjectId(request.params.id)) {
     return response.status(400).json(createErrorResponse('Invalid submission ID format', 400, 'INVALID_ID'));
   }
 
-  // Sanitize input data
   const sanitizedBody = sanitizeInput(request.body);
   const { selfGradedScores, totalScore, maxScore, graded } = sanitizedBody;
 
@@ -400,7 +329,6 @@ submissionsRouter.put("/:id", userExtractor, checkResourceOwnership(getSubmissio
       return response.status(404).json(createErrorResponse('Submission not found', 404, 'NOT_FOUND'));
     }
 
-    // Update submission fields with validated data
     if (selfGradedScores !== undefined) submission.selfGradedScores = selfGradedScores;
     if (totalScore !== undefined) submission.totalScore = totalScore;
     if (maxScore !== undefined) submission.maxScore = maxScore;
@@ -408,7 +336,6 @@ submissionsRouter.put("/:id", userExtractor, checkResourceOwnership(getSubmissio
 
     const updatedSubmission = await submission.save();
     
-    // Populate the updated submission with related data for response
     const populatedSubmission = await Submission.findById(updatedSubmission._id)
       .populate("answer")
       .populate({
@@ -436,24 +363,18 @@ submissionsRouter.put("/:id", userExtractor, checkResourceOwnership(getSubmissio
   }
 });
 
-/**
- * GET /api/submissions/user/:userId - Get submissions for a specific user across all teams
- * Users can only access their own submissions unless they are admin
- */
+// Similar to getting submissions for team, but instead by user
 submissionsRouter.get("/user/:userId", userExtractor, async (request, response) => {
-  // Ensure user is authenticated
   if (!request.user) {
     return response.status(401).json(createErrorResponse('Authentication required', 401, 'UNAUTHORIZED'));
   }
 
   const { userId } = request.params;
 
-  // Validate ObjectId format
   if (!isValidObjectId(userId)) {
     return response.status(400).json(createErrorResponse('Invalid user ID format', 400, 'INVALID_ID'));
   }
 
-  // Users can only access their own submissions unless they're admin
   if (request.user.id !== userId && !request.user.admin) {
     return response.status(403).json(createErrorResponse('Not authorized to view other user submissions', 403, 'FORBIDDEN'));
   }
@@ -472,7 +393,7 @@ submissionsRouter.get("/user/:userId", userExtractor, async (request, response) 
       })
       .populate("user", "firstName lastName email")
       .populate("users", "firstName lastName email")
-      .sort({ submittedAt: -1 }); // Most recent submissions first
+      .sort({ submittedAt: -1 });
 
     response.json(userSubmissions);
   } catch (error) {

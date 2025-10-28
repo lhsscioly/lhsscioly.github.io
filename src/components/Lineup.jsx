@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import TeamAssignmentCell from "./TeamAssignmentCell";
 import teamService from "../services/teams";
 
+// UI component for managing team lineups. Uses TeamAssignmentCell for each event.
 const Lineup = ({ user, users, events, teams, setTeams }) => {
+  // There are 5 total blocks plus self scheduled events in Science Olympiad State meets
   const [block1, setBlock1] = useState([]);
   const [block2, setBlock2] = useState([]);
   const [block3, setBlock3] = useState([]);
@@ -12,7 +14,6 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
 
   const arraysEqual = (a, b) => {
     if (a.length !== b.length) return false;
-    // Extract IDs if objects, otherwise use as-is
     const extractIds = (arr) =>
       arr.map((item) => (typeof item === "object" ? item.id : item));
     const sortedA = extractIds(a).sort();
@@ -20,6 +21,7 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
     return sortedA.every((val, idx) => val === sortedB[idx]);
   };
 
+  // Comprehensive casework for creating, updating, and deleting teams based on how the user saves the assignments
   const onSave = async (eventName, assignments) => {
     const currVarsity = teams.find(
       (t) => t.event === eventName && t.name === "Varsity",
@@ -159,7 +161,6 @@ const Lineup = ({ user, users, events, teams, setTeams }) => {
           error,
         );
       }
-      // Re-throw the error so it can be caught by the calling component
       throw error;
     }
   };

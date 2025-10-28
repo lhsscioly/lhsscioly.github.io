@@ -1,5 +1,7 @@
 import apiClient from "./apiClient";
 
+// Handles backend communication for events, one of the few services that does not require authentication for basic access
+
 const baseUrl = "/api/events";
 
 let token = null;

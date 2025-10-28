@@ -5,16 +5,17 @@ import { ReactSketchCanvas } from "react-sketch-canvas";
 import QuestionSidebar from "./QuestionSidebar";
 import submissionService from "../services/submissions";
 
-function getAristocratType(questionText) {
+// Specific helper functions for Codebusters Aristocrats to determine frequency tables
+const getAristocratType = (questionText) => {
   const lower = questionText.toLowerCase();
   if (!lower.includes("aristocrat")) return null;
   if (lower.includes("k3")) return "K3";
   if (lower.includes("k2")) return "K2";
   if (lower.includes("k1")) return "K1";
-  return "A"; // General Aristocrat
+  return "A";
 }
 
-function getLetterFrequencies(ciphertext) {
+const getLetterFrequencies = (ciphertext) => {
   const freq = {};
   for (let i = 0; i < 26; i++) freq[String.fromCharCode(65 + i)] = 0;
   for (const char of ciphertext.toUpperCase()) {
@@ -23,7 +24,8 @@ function getLetterFrequencies(ciphertext) {
   return freq;
 }
 
-function AristocratFrequencyTable({ type, ciphertext }) {
+// The frequency table component placed inside the test view
+const AristocratFrequencyTable = ({ type, ciphertext }) => {
 
   const freq = getLetterFrequencies(ciphertext);
   const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
@@ -43,8 +45,8 @@ function AristocratFrequencyTable({ type, ciphertext }) {
     showLetterRow = false;
   } else if (type === "K2") {
     rowLabels = ["Replacement", "K2", "Frequency"];
-    row1 = Array(26).fill(""); // Replacement row always empty
-    row2 = letters; // K2 row filled out
+    row1 = Array(26).fill("");
+    row2 = letters; 
     row3 = frequencies;
     showLetterRow = false;
   } else if (type === "K3") {
@@ -54,7 +56,6 @@ function AristocratFrequencyTable({ type, ciphertext }) {
     row3 = frequencies;
     showLetterRow = false;
   } else if (type === "A") {
-    // General Aristocrat: do not show bolded letter row up top
     rowLabels = ["Letter", "Replacement", "Frequency"];
     row1 = letters;
     row2 = Array(26).fill("");
@@ -108,6 +109,7 @@ function AristocratFrequencyTable({ type, ciphertext }) {
   );
 }
 
+// UI component to review each question
 const ReviewQuestionView = ({
   idx,
   question,
@@ -129,15 +131,13 @@ const ReviewQuestionView = ({
   const isSAQ = question.type === "saq";
   const isLEQ = question.type === "leq";
 
-  // Helper function to format cipher text with proper spacing using spans
+  // Format various codebusters ciphers
   const formatCipherText = (text) => {
-    // Check if this is a Baconian cipher by looking at the question text
     const questionText = question.question[0] || "";
     const isBaconian = questionText.toLowerCase().includes("baconian");
 
     if (isBaconian) {
-      // For Baconian cipher, group into 5-letter chunks
-      const cleanText = text.replace(/\s+/g, ""); // Remove existing spaces
+      const cleanText = text.replace(/\s+/g, "");
       const chunks = [];
       for (let i = 0; i < cleanText.length; i += 5) {
         chunks.push(cleanText.slice(i, i + 5));
@@ -148,9 +148,8 @@ const ReviewQuestionView = ({
         </span>
       ));
     } else {
-      // For other ciphers, use word-based spacing
       return text
-        .split(/\s+/) // Split by any whitespace into words
+        .split(/\s+/)
         .map((word, wordIndex) => (
           <span key={wordIndex} className="inline-block mr-4">
             {word.split("").map((char, charIndex) => (
@@ -163,7 +162,6 @@ const ReviewQuestionView = ({
     }
   };
 
-  // Convert letter answers to actual choice content
   const correctAnswers =
     question.answer && question.choices
       ? isMultipleChoice
@@ -180,7 +178,6 @@ const ReviewQuestionView = ({
           })()
       : [];
 
-  // Ensure userAnswers is always an array
   const userAnswers = Array.isArray(userAnswer)
     ? userAnswer.map((ua) => ua.toString().trim())
     : userAnswer
@@ -194,10 +191,10 @@ const ReviewQuestionView = ({
       (ca) => ca.trim() === choiceTrimmed,
     );
 
-    if (isCorrectChoice && isUserChoice) return "bg-green-200 border-green-400"; // Correct & selected
-    if (isCorrectChoice) return "bg-green-100 border-green-300"; // Correct but not selected
-    if (isUserChoice) return "bg-red-200 border-red-400"; // Wrong & selected
-    return "bg-gray-100 border-gray-300"; // Not selected, not correct
+    if (isCorrectChoice && isUserChoice) return "bg-green-200 border-green-400";
+    if (isCorrectChoice) return "bg-green-100 border-green-300";
+    if (isUserChoice) return "bg-red-200 border-red-400";
+    return "bg-gray-100 border-gray-300";
   };
 
   return (
@@ -323,13 +320,12 @@ const ReviewQuestionView = ({
               </div>
             </div>
 
+            {/* Self grading for free response, with checks for over-scoring */}
             {!isGraded && (
               <div className="bg-blue-50 border border-blue-200 rounded p-3">
                 <h5 className="font-medium text-blue-800 mb-2">
                   Self-Grade This Question
                 </h5>
-
-                {/* Auto-score indicator */}
                 {(!userAnswer || userAnswer.trim() === "") &&
                   (!drawings[question.id] ||
                     drawings[question.id].length === 0) &&
@@ -360,11 +356,11 @@ const ReviewQuestionView = ({
                     <input
                       type="number"
                       min="0"
-                      max={question.points} // Ensure the score cannot exceed the total points
+                      max={question.points}
                       className="w-20 border border-blue-300 rounded px-2 py-1"
                       value={selfGradedScore || ""}
                       onChange={(e) => {
-                        const value = Math.min(e.target.value, question.points); // Prevent exceeding max points
+                        const value = Math.min(e.target.value, question.points);
                         onSelfGrade(question.id, "score", value);
                       }}
                       placeholder={
@@ -419,6 +415,7 @@ const ReviewQuestionView = ({
   );
 };
 
+// UI component to review the entire test submission with similar UI to taking the test
 const Review = ({ user }) => {
   const { id: submissionId } = useParams();
   const navigate = useNavigate();
@@ -442,11 +439,10 @@ const Review = ({ user }) => {
   const canvasRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
-  // Check if user came from /review/all page
+  // Check for admin/user for different views
   const [cameFromAllReviews, setCameFromAllReviews] = useState(false);
 
   useEffect(() => {
-    // Check if the user came from the /review/all page using navigation state
     const stateFrom = location.state?.from;
     const cameFromAll = stateFrom === "/review/all";
     setCameFromAllReviews(cameFromAll);
@@ -455,7 +451,6 @@ const Review = ({ user }) => {
   useEffect(() => {
     const fetchSubmission = async () => {
       if (submissionId) {
-        // Ensure token is set before making API calls
         const loggedUser = localStorage.getItem("loggedAppUser");
         if (loggedUser) {
           const userData = JSON.parse(loggedUser);
@@ -470,7 +465,6 @@ const Review = ({ user }) => {
           setAnswers(submissionData.answer?.answers || {});
           setDrawings(submissionData.answer?.drawings || {});
 
-          // Load self-graded scores if available
           const selfGraded = submissionData.selfGradedScores || {};
           const scores = {};
           const comments = {};
@@ -500,7 +494,6 @@ const Review = ({ user }) => {
                   autoScores[question.id] !== undefined &&
                   autoScores[question.id] !== "";
 
-                // If no answer AND no drawing AND no score, auto-score as 0
                 if (!hasAnswer && !hasDrawing && !hasScore) {
                   autoScores[question.id] = "0";
                   hasAutoScores = true;
@@ -539,14 +532,13 @@ const Review = ({ user }) => {
     return () => window.removeEventListener("resize", updateSize);
   }, [showCanvas, currentIdx]);
 
+  // Calculated MCQScore differently depending on whether the test has been reviewed by user yet
   const calculateMCQScore = () => {
-    // For graded submissions, use the stored backend scores
     if (
       submission?.graded &&
       submission?.totalScore !== undefined &&
       submission?.maxScore !== undefined
     ) {
-      // Calculate SAQ/LEQ score from self-graded scores
       let saqLeqScore = 0;
       let saqLeqTotal = 0;
 
@@ -562,14 +554,12 @@ const Review = ({ user }) => {
         });
       }
 
-      // MCQ score is total score minus SAQ/LEQ score
       const mcqScore = Math.max(0, submission.totalScore - saqLeqScore);
       const mcqTotal = Math.max(0, submission.maxScore - saqLeqTotal);
 
       return { score: mcqScore, total: mcqTotal };
     }
 
-    // For ungraded submissions, calculate in real-time with proper letter-to-content mapping
     if (!test?.questions) return { score: 0, total: 0 };
 
     const mcqQuestions = test.questions.filter((q) => q.type === "mcq");
@@ -583,7 +573,6 @@ const Review = ({ user }) => {
 
       if (!correctAnswer || !question.choices) return;
 
-      // Convert letter answers to actual choice content
       const isMultipleChoice = correctAnswer.includes(", ");
       const correctChoices = isMultipleChoice
         ? correctAnswer.split(", ").map((letter) => {
@@ -605,14 +594,12 @@ const Review = ({ user }) => {
           : [];
 
       if (isMultipleChoice) {
-        // Multiple choice
         if (
           JSON.stringify(correctChoices.sort()) === JSON.stringify(userAnswers)
         ) {
           correctCount += question.points || 1;
         }
       } else {
-        // Single choice
         if (userAnswers.length === 1 && userAnswers[0] === correctChoices[0]) {
           correctCount += question.points || 1;
         }
@@ -658,14 +645,12 @@ const Review = ({ user }) => {
       if (filterType === "leq") return question.type === "leq";
       if (filterType === "unanswered") {
         if (question.type === "mcq") {
-          // MCQ is unanswered if no choice is selected
           const userAnswer = answers[question.id];
           return (
             !userAnswer ||
             (Array.isArray(userAnswer) && userAnswer.length === 0)
           );
         } else if (question.type === "saq" || question.type === "leq") {
-          // SAQ/LEQ is unanswered if no text answer AND no drawing
           const hasAnswer =
             answers[question.id] && answers[question.id].trim() !== "";
           const hasDrawing =
@@ -683,6 +668,7 @@ const Review = ({ user }) => {
     });
   };
 
+  // Management to filter questions as users want to view them
   const getAvailableFilters = () => {
     const allFilters = [
       "all",
@@ -704,7 +690,6 @@ const Review = ({ user }) => {
 
     if (!correctAnswer || !question.choices) return false;
 
-    // Convert letter answers to actual choice content
     const isMultipleChoice = correctAnswer.includes(", ");
     const correctChoices = isMultipleChoice
       ? correctAnswer.split(", ").map((letter) => {
@@ -726,18 +711,16 @@ const Review = ({ user }) => {
         : [];
 
     if (isMultipleChoice) {
-      // Multiple choice - compare arrays
       return (
         JSON.stringify(correctChoices.sort()) === JSON.stringify(userAnswers)
       );
     } else {
-      // Single choice - direct comparison
       return userAnswers.length === 1 && userAnswers[0] === correctChoices[0];
     }
   };
 
   const handleSelfGrade = (questionId, type, value) => {
-    if (error) setError(""); // Clear error when user starts grading
+    if (error) setError("");
 
     if (type === "score") {
       setSelfGradedScores((prev) => ({ ...prev, [questionId]: value }));
@@ -749,7 +732,6 @@ const Review = ({ user }) => {
   const handleFinishGrading = async () => {
     setError("");
 
-    // Auto-score unanswered questions with no drawings as 0
     const saqLeqQuestions = test.questions.filter(
       (q) => q.type === "saq" || q.type === "leq",
     );
@@ -764,7 +746,6 @@ const Review = ({ user }) => {
         updatedScores[question.id] !== undefined &&
         updatedScores[question.id] !== "";
 
-      // If no answer AND no drawing AND no score, auto-score as 0
       if (!hasAnswer && !hasDrawing && !hasScore) {
         updatedScores[question.id] = "0";
       }
@@ -772,14 +753,13 @@ const Review = ({ user }) => {
 
     setSelfGradedScores(updatedScores);
 
-    // Validate that all remaining SAQ/LEQ questions have scores
+    // Validate that all answered free response questions have been scored
     const missingScores = saqLeqQuestions.filter((q) => {
       const hasAnswer = answers[q.id] && answers[q.id].trim() !== "";
       const hasDrawing = drawings[q.id] && drawings[q.id].length > 0;
       const hasScore =
         updatedScores[q.id] !== undefined && updatedScores[q.id] !== "";
 
-      // Only require scoring if there's an answer or drawing
       return (hasAnswer || hasDrawing) && !hasScore;
     });
 
@@ -794,8 +774,6 @@ const Review = ({ user }) => {
 
     try {
       const selfGradedData = {};
-
-      // Use updated scores for calculation
       const tempScores = updatedScores;
       let saqLeqScore = 0;
       let saqLeqTotal = 0;
@@ -825,7 +803,6 @@ const Review = ({ user }) => {
         graded: true,
       });
 
-      // Refresh submission data
       const updatedSubmission = await submissionService.getById(submissionId);
       setSubmission(updatedSubmission);
     } catch (error) {
@@ -840,12 +817,10 @@ const Review = ({ user }) => {
     setShowCanvas(false);
     setCurrentIdx(newIdx);
 
-    // Scroll to top of question view
     if (questionViewRef.current) {
       questionViewRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // Scroll the main container into view for better navigation experience
     if (reviewContainerRef.current) {
       reviewContainerRef.current.scrollIntoView({
         behavior: "smooth",
@@ -854,12 +829,10 @@ const Review = ({ user }) => {
     }
   };
 
-  // Also hide canvas when filter changes
   useEffect(() => {
     setShowCanvas(false);
   }, [filter]);
 
-  // Auto-scroll to test container when component loads and data is ready
   useEffect(() => {
     if (!loading && submission && test && reviewContainerRef.current) {
       setTimeout(() => {
@@ -1004,8 +977,8 @@ const Review = ({ user }) => {
               key={filterOption}
               onClick={() => {
                 setFilter(filterOption);
-                setCurrentIdx(0); // Reset to first question when filter changes
-                setShowCanvas(false); // Hide canvas when switching filters
+                setCurrentIdx(0);
+                setShowCanvas(false);
               }}
               className={`px-3 py-1 rounded text-sm ${
                 filter === filterOption
@@ -1025,7 +998,7 @@ const Review = ({ user }) => {
           ))}
         </div>
 
-        {/* Error display */}
+        {/* Special error display for review mode*/}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <div className="flex items-center">
@@ -1037,7 +1010,6 @@ const Review = ({ user }) => {
           </div>
         )}
 
-        {/* Self-grading controls */}
         {!submission.graded && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div className="flex justify-between items-center">
@@ -1064,11 +1036,9 @@ const Review = ({ user }) => {
           </div>
         )}
 
-        {/* Main Test View Container */}
         <div
           className={`flex space-x-4 ${submission.graded ? "h-[500px]" : "h-[400px]"}`}
         >
-          {/* Question Sidebar */}
           <div className="w-64 h-full overflow-y-auto pr-2 scrollbar-hide bg-gray-100 rounded-lg">
             <div className="sticky top-0 bg-gray-100 z-10 pb-2 pt-3">
               <h3 className="text-lg font-semibold text-orange-700 text-center">
@@ -1085,7 +1055,6 @@ const Review = ({ user }) => {
             />
           </div>
 
-          {/* Question View */}
           <div
             ref={questionViewRef}
             className="flex-1 relative h-full overflow-auto pr-2 scrollbar-hide"
@@ -1111,7 +1080,6 @@ const Review = ({ user }) => {
               event={test.event}
             />
 
-            {/* Drawing Canvas (Read-only) */}
             {showCanvas && (
               <div
                 className="absolute top-0 left-0 bg-transparent z-20 pointer-events-none"
@@ -1136,7 +1104,6 @@ const Review = ({ user }) => {
           </div>
         </div>
 
-        {/* Navigation */}
         <div className="flex justify-between items-center">
           <div className="flex gap-2 items-center min-w-[120px]">
             {/* Only show drawing button if there's a drawing for current question */}

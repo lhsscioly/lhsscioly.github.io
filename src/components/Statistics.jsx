@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import statisticsService from "../services/statistics";
 import teamsService from "../services/teams";
 
+// UI component to display overall statistics to admins from all students
 const Statistics = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -11,11 +12,11 @@ const Statistics = () => {
   const [selectedSchoolYear, setSelectedSchoolYear] = useState("");
   const [yearUsers, setYearUsers] = useState([]);
 
+  // Manages loading for large number of statistics calculations and data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Ensure token is set before making API calls
         const loggedUser = localStorage.getItem("loggedAppUser");
         if (loggedUser) {
           const userData = JSON.parse(loggedUser);
@@ -23,7 +24,6 @@ const Statistics = () => {
           teamsService.setToken(userData.token);
         }
 
-        // Fetch overall statistics and teams
         const [statsData, teamsData] = await Promise.all([
           statisticsService.getOverallStatistics(),
           teamsService.getAll(),
@@ -33,7 +33,6 @@ const Statistics = () => {
         setTeams(teamsData);
         setSelectedSchoolYear(statsData.selectedSchoolYear || "");
 
-        // Get users from the selected school year
         if (statsData.selectedSchoolYear) {
           updateYearUsers(teamsData, statsData.selectedSchoolYear);
         }
@@ -48,7 +47,7 @@ const Statistics = () => {
   }, []);
 
   const updateYearUsers = (teamsData, schoolYear) => {
-    // Get all unique users from teams in the selected school year
+    // Get all users from current school year
     const usersSet = new Set();
     const usersMap = new Map();
 
@@ -72,19 +71,19 @@ const Statistics = () => {
     setYearUsers(Array.from(usersMap.values()));
   };
 
+  // Different view modes for specific users and school years
+
   const handleSchoolYearChange = async (schoolYear) => {
     try {
       setLoading(true);
 
-      // Ensure token is set before making API calls
       const loggedUser = localStorage.getItem("loggedAppUser");
       if (loggedUser) {
         const userData = JSON.parse(loggedUser);
         statisticsService.setToken(userData.token);
       }
 
-      const statsData =
-        await statisticsService.getOverallStatistics(schoolYear);
+      const statsData = await statisticsService.getOverallStatistics(schoolYear);
       setOverallStats(statsData);
       setSelectedSchoolYear(schoolYear);
       updateYearUsers(teams, schoolYear);
@@ -139,7 +138,7 @@ const Statistics = () => {
         )}
       </div>
 
-      {/* Event Statistics */}
+      {/* General event statistics, decided as essential by us */}
       {overallStats && overallStats.eventStatistics.length > 0 && (
         <div className="bg-white rounded-lg shadow-md mb-8 pb-6">
           <div className="px-6 py-4 border-b border-orange-200">
@@ -204,7 +203,7 @@ const Statistics = () => {
         </div>
       )}
 
-      {/* Students from Selected Year */}
+      {/* List of users to check their individual statistics */}
       {yearUsers.length > 0 && (
         <div className="bg-white rounded-lg shadow-md">
           <div className="px-6 py-4 border-b border-orange-200">

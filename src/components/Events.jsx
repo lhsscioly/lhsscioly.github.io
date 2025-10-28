@@ -3,6 +3,7 @@ import Event from "./Event";
 import eventService from "../services/events";
 import Modal from "./Modal";
 
+// UI component to manage all events, with additional features for admins and filters
 const Events = (props) => {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("");
@@ -225,6 +226,7 @@ const Events = (props) => {
             />
           </div>
 
+          { /* Manages events resources through links and short names for them per event */ }
           <div>
             <label className="block text-sm font-medium text-orange-800 mb-1">
               Add Resource

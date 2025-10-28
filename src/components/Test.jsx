@@ -2,11 +2,14 @@ import { Link, useNavigate, useMatch } from "react-router-dom";
 import { useState, useEffect } from "react";
 import testService from "../services/tests";
 
+// UI component for viewing and assigning tests
+
 const Test = ({ tests, user, teams, setError, setNotif, setTests }) => {
   const [test, setTest] = useState(null);
   const match = useMatch("/tests/:id");
   const navigate = useNavigate();
 
+  // The following blocks get the specific test based on URL
   useEffect(() => {
     if (match && tests) {
       const found = tests.find((t) => String(t.id) === match.params.id);
@@ -42,6 +45,7 @@ const Test = ({ tests, user, teams, setError, setNotif, setTests }) => {
     );
   }
 
+  // Assigns test to all students in the teams doing that event
   const handleAssign = async () => {
     if (!user || !test) return;
     if (!teams || teams.length === 0) {
@@ -96,6 +100,7 @@ const Test = ({ tests, user, teams, setError, setNotif, setTests }) => {
           </button>
         </div>
 
+        { /* View only test details */ }
         <div className="text-center">
           <h2 className="text-2xl font-semibold text-orange-700">
             {test.school} Science Olympiad {test.year}

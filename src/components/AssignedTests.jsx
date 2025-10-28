@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import answerService from "../services/answers";
 import submissionService from "../services/submissions";
 
+// UI component that shows all the tests a user has assigned
 const AssignedTests = ({ tests, user, users, teams }) => {
   const [assigned, setAssigned] = useState([]);
-  const [testStates, setTestStates] = useState({}); // Track which tests are started
+  const [testStates, setTestStates] = useState({}); // States meaning if the test is started or not
 
+  // Uses teams to gather tests, since tests are assigned to teams
   useEffect(() => {
     if (tests && user && users) {
       const currentUser = users.find((u) => u.id === user.id);
@@ -27,11 +29,9 @@ const AssignedTests = ({ tests, user, users, teams }) => {
     }
   }, [tests, user, users]);
 
-  // Check if tests have been started (have answers)
   useEffect(() => {
     const checkTestStates = async () => {
       if (assigned.length > 0 && teams && user) {
-        // Ensure token is set before making API calls
         const loggedUser = localStorage.getItem("loggedAppUser");
         if (loggedUser) {
           const userData = JSON.parse(loggedUser);
@@ -42,7 +42,6 @@ const AssignedTests = ({ tests, user, users, teams }) => {
         const states = {};
 
         for (const test of assigned) {
-          // Find user's team for this test
           const userTeam = teams.find(
             (team) =>
               team &&
@@ -56,7 +55,6 @@ const AssignedTests = ({ tests, user, users, teams }) => {
 
           if (userTeam) {
             try {
-              // First check if submitted
               const submissionCheck = await submissionService.checkSubmission(
                 test.id,
                 userTeam.id,
@@ -64,7 +62,6 @@ const AssignedTests = ({ tests, user, users, teams }) => {
               if (submissionCheck.submitted) {
                 states[test.id] = "submitted";
               } else {
-                // Check if started
                 const existingAnswers = await answerService.getByTestAndTeam(
                   test.id,
                   userTeam.id,
@@ -72,7 +69,6 @@ const AssignedTests = ({ tests, user, users, teams }) => {
                 states[test.id] = existingAnswers ? "started" : "not_started";
               }
             } catch (error) {
-              // If we get 404, the test hasn't been started
               states[test.id] = "not_started";
             }
           } else {

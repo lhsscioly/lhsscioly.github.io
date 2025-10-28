@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
+// UI component to sign up for an account
 const SignUp = (props) => {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -13,7 +14,7 @@ const SignUp = (props) => {
   const handleSignUp = async (event) => {
     event.preventDefault();
 
-    // Email domain validation
+    // Validate emails to make sure only school emails are used
     const allowedDomains = ["d128.org", "lhswildcats.org"];
     const emailDomain = email.split("@")[1]?.toLowerCase();
     if (!allowedDomains.includes(emailDomain)) {
@@ -108,6 +109,7 @@ const SignUp = (props) => {
           />
         </div>
 
+        {/* Used for captains and coaches to get admin view */}
         {admin ? (
           <div className="space-y-2">
             <label className="block mb-1 font-medium text-gray-800">

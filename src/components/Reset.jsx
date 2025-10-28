@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+// UI component to reset password from email link
 const Reset = (props) => {
   const [newPass, setNewPass] = useState("");
   const navigate = useNavigate();

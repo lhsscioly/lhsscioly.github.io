@@ -1,3 +1,4 @@
+// UI component that allows for easy question navigation in TakeTest view
 const QuestionSidebar = ({
   questions,
   currentIdx,
@@ -6,7 +7,6 @@ const QuestionSidebar = ({
   answers,
   drawings = {},
 }) => {
-  // Helper function to check if a question has content (answer or drawing)
   const hasContent = (questionId) => {
     const hasAnswer = answers[questionId];
     const hasDrawing = drawings[questionId] && drawings[questionId].length > 0;

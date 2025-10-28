@@ -4,21 +4,14 @@ const User = require("../models/user");
 const { userExtractor } = require("../utils/middleware");
 const { handleError, createErrorResponse, sanitizeInput } = require("../utils/security");
 
-/**
- * GET /api/statistics - Overall statistics for coaches (Verified users only)
- * Returns submission statistics organized by event and school year
- */
 statisticsRouter.get("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated and verified
   if (!request.user || !request.user.verified) {
     return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
   try {
-    // Get all available school years from submissions
     const schoolYears = await Submission.distinct("schoolYear");
     
-    // Get school year from query params with sanitization, default to most recent
     const sanitizedQuery = sanitizeInput(request.query);
     const requestedYear = sanitizedQuery.schoolYear || schoolYears.sort().reverse()[0];
     
@@ -30,15 +23,13 @@ statisticsRouter.get("/", userExtractor, async (request, response) => {
       });
     }
 
-    // Get all graded submissions for the selected school year
     const submissions = await Submission.find({
       schoolYear: requestedYear,
       graded: true,
-      maxScore: { $gt: 0 } // Only include submissions with valid max scores
+      maxScore: { $gt: 0 }
     }).populate("test", "event")
       .populate("users", "firstName lastName");
 
-    // Calculate statistics by event
     const eventStats = {};
     
     submissions.forEach(submission => {
@@ -59,7 +50,6 @@ statisticsRouter.get("/", userExtractor, async (request, response) => {
       eventStats[event].scores.push(percentage);
     });
 
-    // Calculate averages and additional statistics
     const eventStatistics = Object.values(eventStats).map(stat => ({
       event: stat.event,
       averagePercentage: Math.round((stat.totalPercentage / stat.totalSubmissions) * 100) / 100,
@@ -79,12 +69,7 @@ statisticsRouter.get("/", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * GET /api/statistics/:id - Individual student statistics (Verified users only)
- * Returns detailed statistics for a specific student
- */
 statisticsRouter.get("/:id", userExtractor, async (request, response) => {
-  // Ensure user is authenticated and verified
   if (!request.user || !request.user.verified) {
     return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
@@ -92,13 +77,11 @@ statisticsRouter.get("/:id", userExtractor, async (request, response) => {
   const { id } = request.params;
 
   try {
-    // Get the student
     const student = await User.findById(id);
     if (!student) {
       return response.status(404).json({ error: "student not found" });
     }
 
-    // Get all graded submissions for this student across all years
     const submissions = await Submission.find({
       users: id,
       graded: true,
@@ -121,7 +104,6 @@ statisticsRouter.get("/:id", userExtractor, async (request, response) => {
       });
     }
 
-    // Group submissions by event
     const eventGroups = {};
     const schoolYearGroups = {};
     
@@ -129,8 +111,7 @@ statisticsRouter.get("/:id", userExtractor, async (request, response) => {
       const event = submission.test.event;
       const schoolYear = submission.schoolYear;
       const percentage = (submission.totalScore / submission.maxScore) * 100;
-      
-      // Group by event
+
       if (!eventGroups[event]) {
         eventGroups[event] = {
           event,
@@ -152,7 +133,6 @@ statisticsRouter.get("/:id", userExtractor, async (request, response) => {
       eventGroups[event].totalScore += percentage;
       eventGroups[event].count++;
       
-      // Group by school year
       if (!schoolYearGroups[schoolYear]) {
         schoolYearGroups[schoolYear] = {
           schoolYear,
@@ -174,7 +154,6 @@ statisticsRouter.get("/:id", userExtractor, async (request, response) => {
       schoolYearGroups[schoolYear].totalTests++;
     });
 
-    // Calculate event statistics
     const eventStatistics = Object.values(eventGroups).map(group => {
       const sortedSubmissions = group.submissions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
       
@@ -194,7 +173,6 @@ statisticsRouter.get("/:id", userExtractor, async (request, response) => {
       };
     }).sort((a, b) => b.averagePercentage - a.averagePercentage);
 
-    // Calculate school year statistics
     const schoolYearStatistics = Object.values(schoolYearGroups).map(group => ({
       schoolYear: group.schoolYear,
       totalTests: group.totalTests,
@@ -205,7 +183,6 @@ statisticsRouter.get("/:id", userExtractor, async (request, response) => {
       })).sort((a, b) => b.averagePercentage - a.averagePercentage)
     })).sort((a, b) => b.schoolYear.localeCompare(a.schoolYear));
 
-    // Find best performing event
     const bestPerformingEvent = eventStatistics.length > 0 ? {
       event: eventStatistics[0].event,
       averagePercentage: eventStatistics[0].averagePercentage,

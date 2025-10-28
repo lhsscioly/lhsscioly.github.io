@@ -1,5 +1,7 @@
 import apiClient from "./apiClient";
 
+// Handles backend communication for test answers coordinated during multi-device testing
+
 const baseUrl = "/api/answers";
 
 let token = null;

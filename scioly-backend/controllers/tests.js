@@ -6,12 +6,7 @@ const Submission = require("../models/submission");
 const { userExtractor } = require("../utils/middleware");
 const { handleError, createErrorResponse, isValidObjectId, sanitizeInput } = require("../utils/security");
 
-/**
- * GET /api/tests - Get all tests (Verified users only)
- * Returns all tests in the system with populated question and assignee data
- */
 testsRouter.get("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated and verified
   if (!request.user || !request.user.verified) {
     return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
@@ -28,17 +23,11 @@ testsRouter.get("/", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * GET /api/tests/:id - Get specific test by ID (Verified users only)
- * Returns a single test with populated question and assignee data
- */
 testsRouter.get("/:id", userExtractor, async (request, response) => {
-  // Ensure user is authenticated and verified
   if (!request.user || !request.user.verified) {
     return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
-  // Validate ObjectId format
   if (!isValidObjectId(request.params.id)) {
     return response.status(400).json(createErrorResponse('Invalid test ID format', 400, 'INVALID_ID'));
   }
@@ -59,17 +48,11 @@ testsRouter.get("/:id", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * POST /api/tests - Create new test (Admin only)
- * Creates a new test with specified parameters and question assignments
- */
 testsRouter.post("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated and is admin
   if (!request.user || !request.user.admin) {
     return response.status(401).json(createErrorResponse('Admin access required', 401, 'UNAUTHORIZED'));
   }
 
-  // Sanitize and validate input
   const sanitizedBody = sanitizeInput(request.body);
   const { event, random, school, year, questions } = sanitizedBody;
 
@@ -95,22 +78,15 @@ testsRouter.post("/", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * PUT /api/tests/:id - Update test assignees (Verified users only)
- * Updates the teams assigned to a specific test with submission validation
- */
 testsRouter.put("/:id", userExtractor, async (request, response) => {
-  // Ensure user is authenticated and verified
   if (!request.user || !request.user.verified) {
     return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
 
-  // Validate ObjectId format
   if (!isValidObjectId(request.params.id)) {
     return response.status(400).json(createErrorResponse('Invalid test ID format', 400, 'INVALID_ID'));
   }
 
-  // Sanitize input
   const sanitizedBody = sanitizeInput(request.body);
   const { assignees } = sanitizedBody;
 
@@ -120,10 +96,8 @@ testsRouter.put("/:id", userExtractor, async (request, response) => {
       return response.status(404).json(createErrorResponse('Test not found', 404, 'NOT_FOUND'));
     }
 
-    // Check if any of the teams already have submissions for this event to prevent conflicts
     if (assignees && assignees.length > 0) {
       try {
-        // Find all tests for this event to check for existing submissions
         const testsForEvent = await Test.find({ 
           event: test.event 
         }, '_id');
@@ -149,7 +123,6 @@ testsRouter.put("/:id", userExtractor, async (request, response) => {
       }
     }
 
-    // Update test assignees with validated team IDs
     test.assignees = assignees;
 
     const savedTest = await test.save();

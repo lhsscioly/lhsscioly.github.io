@@ -1,5 +1,8 @@
 import { useState } from "react";
 
+// UI component for user settings
+// Currently very simple, with the password reset and logout options
+
 const UserSettings = (props) => {
   const [newPass, setNewPass] = useState("");
 

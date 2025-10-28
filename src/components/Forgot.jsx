@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+// UI component for the Forgot password page
 const Forgot = (props) => {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();

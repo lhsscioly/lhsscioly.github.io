@@ -7,43 +7,44 @@ import answerService from "../services/answers";
 import submissionService from "../services/submissions";
 import testService from "../services/tests";
 
-// Helper function to determine if server value should be prioritized
+// There is purposefully a lot of redundancy in this file to ensure the process of syncing is smooth.
+// Merging logic and debouncing is sometimes similar, but helps mimic the real-time features of web-sockets
+
+// Determines whether the centralized test answers should be prioritized
 const shouldPrioritizeServerValue = (
   currentValue,
   serverValue,
   timeSinceServerUpdate,
 ) => {
-  // If server value is very recent (less than 1 second), prioritize it
   if (timeSinceServerUpdate < 1000) {
     return true;
   }
 
-  // If both are empty or both are the same, no change needed
   if (currentValue === serverValue) {
     return false;
   }
 
-  // Helper function to check if a value is "empty"
+
+  // Helper and evaluator to prioritize non empty values over empty ones
+  // Checks for recencies since users might delete values for some questions
+
   const isEmpty = (value) => {
     if (value === null || value === undefined) return true;
     if (typeof value === "string") return value.trim() === "";
-    if (typeof value === "number") return false; // Numbers are never considered empty
-    if (typeof value === "boolean") return false; // Booleans are never considered empty
+    if (typeof value === "number") return false;
+    if (typeof value === "boolean") return false;
     if (Array.isArray(value)) return value.length === 0;
     return false;
   };
 
-  // If current is empty and server has content, use server
   if (isEmpty(currentValue) && !isEmpty(serverValue)) {
     return true;
   }
 
-  // If server is empty and current has content, keep current
   if (isEmpty(serverValue) && !isEmpty(currentValue)) {
     return false;
   }
 
-  // If both have content, prioritize server if it's recent (less than 1.5 seconds)
   if (timeSinceServerUpdate < 1500) {
     return true;
   }
@@ -51,23 +52,20 @@ const shouldPrioritizeServerValue = (
   return false;
 };
 
-// Helper function to determine if server drawing should be prioritized
+// Helps prioritize centralized drawing data, similar to values like above
 const shouldPrioritizeServerDrawing = (
   currentDrawing,
   serverDrawing,
   timeSinceServerUpdate,
 ) => {
-  // If server drawing is very recent (less than 1 second), prioritize it
   if (timeSinceServerUpdate < 1000) {
     return true;
   }
 
-  // If both are empty or both are the same, no change needed
   if (JSON.stringify(currentDrawing) === JSON.stringify(serverDrawing)) {
     return false;
   }
 
-  // Helper function to check if a drawing is "empty"
   const isEmptyDrawing = (drawing) => {
     if (!drawing) return true;
     if (Array.isArray(drawing)) return drawing.length === 0;
@@ -75,17 +73,14 @@ const shouldPrioritizeServerDrawing = (
     return false;
   };
 
-  // If current is empty and server has content, use server
   if (isEmptyDrawing(currentDrawing) && !isEmptyDrawing(serverDrawing)) {
     return true;
   }
 
-  // If server is empty and current has content, keep current
   if (isEmptyDrawing(serverDrawing) && !isEmptyDrawing(currentDrawing)) {
     return false;
   }
 
-  // If both have content, prioritize server if it's recent (less than 1.5 seconds)
   if (timeSinceServerUpdate < 1500) {
     return true;
   }
@@ -93,6 +88,7 @@ const shouldPrioritizeServerDrawing = (
   return false;
 };
 
+// UI component to take the 
 const TakeTest = ({
   tests = [],
   user,
@@ -118,17 +114,19 @@ const TakeTest = ({
   const [drawingByQuestionId, setDrawingByQuestionId] = useState({});
   const [teamId, setTeamId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Track if we're loading existing answers
-  const [pendingSync, setPendingSync] = useState(null); // Track pending sync operations
-  const [lastUserActivity, setLastUserActivity] = useState(0); // Track when user last made changes
-  const [submitted, setSubmitted] = useState(false); // Track if test was successfully submitted
+  const [isLoading, setIsLoading] = useState(true);
+  const [pendingSync, setPendingSync] = useState(null);
+  const [lastUserActivity, setLastUserActivity] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
 
+  // Use of ref here to prevent re-rendering on every time tick and question change
   const timerRef = useRef(null);
   const questionViewRef = useRef(null);
   const canvasRef = useRef(null);
   const testContainerRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
+  // Get the specific test and verify the correct user is taking the test
   useEffect(() => {
     if (tests && Array.isArray(tests) && testId) {
       const found = tests.find((t) => String(t.id) === testId);
@@ -136,7 +134,6 @@ const TakeTest = ({
     }
   }, [tests, testId]);
 
-  // Get user's team for this test
   useEffect(() => {
     if (user && test && teams && Array.isArray(teams)) {
       const userTeam = teams.find(
@@ -157,7 +154,6 @@ const TakeTest = ({
   useEffect(() => {
     const loadExistingAnswers = async () => {
       if (testId && teamId) {
-        // Ensure token is set before making API calls
         const loggedUser = localStorage.getItem("loggedAppUser");
         if (loggedUser) {
           const userData = JSON.parse(loggedUser);
@@ -166,14 +162,12 @@ const TakeTest = ({
         }
 
         try {
-          // First check if test has already been submitted
           const submissionCheck = await submissionService.checkSubmission(
             testId,
             teamId,
           );
 
           if (submissionCheck.submitted) {
-            // Test already submitted, redirect back with error
             if (setError) {
               setError("This test has already been submitted.");
               setTimeout(() => setError(null), 5000);
@@ -182,7 +176,6 @@ const TakeTest = ({
             return;
           }
 
-          // If not submitted, check for existing answers
           const existingAnswers = await answerService.getByTestAndTeam(
             testId,
             teamId,
@@ -191,7 +184,7 @@ const TakeTest = ({
             setAnswers(existingAnswers.answers || {});
             setDrawingByQuestionId(existingAnswers.drawings || {});
             setTimeLeft(existingAnswers.timeLeft || 50 * 60);
-            setStarted(true); // Automatically start the test if answers exist
+            setStarted(true);
           }
         } catch (error) {
           console.log("No existing answers found, starting fresh");
@@ -199,7 +192,6 @@ const TakeTest = ({
           setIsLoading(false);
         }
       } else if (testId) {
-        // If we have testId but no teamId, we still need to stop loading
         setIsLoading(false);
       }
     };
@@ -241,11 +233,10 @@ const TakeTest = ({
     }
   }, [started, currentIdx]);
 
-  // Sync specific answers when they change
+  // Handles syncing of test answers, using the helper functions above
   useEffect(() => {
     const syncSpecificAnswer = async () => {
       if (pendingSync && testId && teamId && started && !submitted) {
-        // Ensure token is set before making API calls
         const loggedUser = localStorage.getItem("loggedAppUser");
         if (loggedUser) {
           const userData = JSON.parse(loggedUser);
@@ -259,11 +250,9 @@ const TakeTest = ({
             pendingSync,
           );
           setPendingSync(null);
-          // Update timeLeft from server response
           setTimeLeft(response.timeLeft);
         } catch (error) {
           console.error("Failed to sync specific answer:", error);
-          // If the answer document doesn't exist, try to create it
           if (error.response?.status === 404) {
             try {
               await answerService.create({
@@ -283,7 +272,7 @@ const TakeTest = ({
     };
 
     if (pendingSync && !submitted) {
-      const syncTimer = setTimeout(syncSpecificAnswer, 500); // Debounce for 0.5 seconds (reduced from 2 seconds)
+      const syncTimer = setTimeout(syncSpecificAnswer, 500); // The debouncing I mentioned
       return () => clearTimeout(syncTimer);
     }
   }, [
@@ -296,17 +285,16 @@ const TakeTest = ({
     submitted,
   ]);
 
-  // Sync from backend every 5 seconds to get updates from other users
+  // Gets actual data from backend to sync
   useEffect(() => {
     const syncFromBackend = async () => {
       if (testId && teamId && started && !submitted) {
-        // Don't sync if user has been active in the last 1 second to avoid interrupting typing
+        // Further debouncing to avoid overwriting active user edits
         const timeSinceLastActivity = Date.now() - lastUserActivity;
         if (timeSinceLastActivity < 1000) {
           return;
         }
 
-        // Ensure token is set before making API calls
         const loggedUser = localStorage.getItem("loggedAppUser");
         if (loggedUser) {
           const userData = JSON.parse(loggedUser);
@@ -317,15 +305,14 @@ const TakeTest = ({
         try {
           const response = await answerService.getByTestAndTeam(testId, teamId);
           if (response) {
-            // Check if test has been submitted by checking submissions
             try {
               const submissionCheck = await submissionService.checkSubmission(
                 testId,
                 teamId,
               );
 
+              // Checking for other teammates submitting the test
               if (submissionCheck.submitted && !submitted) {
-                // Another user submitted the test
                 setSubmitted(true);
                 setStarted(false);
                 clearTimeout(timerRef.current);
@@ -334,7 +321,7 @@ const TakeTest = ({
                   setNotif("Test has been submitted by another team member!");
                   setTimeout(() => setNotif(null), 5000);
                 }
-                return; // Don't continue with regular sync
+                return;
               }
             } catch (submissionError) {
               console.log(
@@ -343,13 +330,12 @@ const TakeTest = ({
               );
             }
 
-            // Smart merge based on timestamps and content
             const serverAnswers = response.answers || {};
             const serverDrawings = response.drawings || {};
             const serverAnswerTimestamps = response.answerTimestamps || {};
             const serverDrawingTimestamps = response.drawingTimestamps || {};
 
-            // Update answers with smart merging
+            // Updates answers using the merging above
             setAnswers((prevAnswers) => {
               const updatedAnswers = { ...prevAnswers };
               let hasChanges = false;
@@ -364,12 +350,10 @@ const TakeTest = ({
                 const timeSinceServerUpdate =
                   Date.now() - serverTimestamp.getTime();
 
-                // Don't overwrite if user has been active on this question in the last 2 seconds
                 if (
                   timeSinceServerUpdate < 2000 &&
                   currentAnswer !== serverAnswer
                 ) {
-                  // Smart merge: prioritize non-empty content, then most recent
                   const shouldUseServer = shouldPrioritizeServerValue(
                     currentAnswer,
                     serverAnswer,
@@ -383,7 +367,6 @@ const TakeTest = ({
                   currentAnswer !== serverAnswer &&
                   timeSinceServerUpdate >= 2000
                 ) {
-                  // Use server value if it's older than 2 seconds (not actively being edited)
                   updatedAnswers[questionId] = serverAnswer;
                   hasChanges = true;
                 }
@@ -392,7 +375,7 @@ const TakeTest = ({
               return hasChanges ? updatedAnswers : prevAnswers;
             });
 
-            // Update drawings with smart merging
+            // Update drawings with similar merging techniques
             setDrawingByQuestionId((prevDrawings) => {
               const updatedDrawings = { ...prevDrawings };
               let hasChanges = false;
@@ -407,13 +390,11 @@ const TakeTest = ({
                 const timeSinceServerUpdate =
                   Date.now() - serverTimestamp.getTime();
 
-                // Don't overwrite if user has been active on this question in the last 2 seconds
                 if (
                   timeSinceServerUpdate < 2000 &&
                   JSON.stringify(currentDrawing) !==
                     JSON.stringify(serverDrawing)
                 ) {
-                  // Smart merge: prioritize non-empty content, then most recent
                   const shouldUseServer = shouldPrioritizeServerDrawing(
                     currentDrawing,
                     serverDrawing,
@@ -423,7 +404,7 @@ const TakeTest = ({
                     updatedDrawings[questionId] = serverDrawing;
                     hasChanges = true;
 
-                    // Reload canvas if this is the current question
+                    // Need to reload canvas updates for current question
                     const currentQuestionId = test?.questions?.[currentIdx]?.id;
                     if (
                       showCanvas &&
@@ -444,11 +425,9 @@ const TakeTest = ({
                     JSON.stringify(serverDrawing) &&
                   timeSinceServerUpdate >= 2000
                 ) {
-                  // Use server value if it's older than 2 seconds
                   updatedDrawings[questionId] = serverDrawing;
                   hasChanges = true;
 
-                  // Reload canvas if this is the current question
                   const currentQuestionId = test?.questions?.[currentIdx]?.id;
                   if (
                     showCanvas &&
@@ -465,11 +444,9 @@ const TakeTest = ({
                   }
                 }
               }
-
               return hasChanges ? updatedDrawings : prevDrawings;
             });
 
-            // Always update time from server
             setTimeLeft(response.timeLeft);
           }
         } catch (error) {
@@ -479,7 +456,7 @@ const TakeTest = ({
     };
 
     if (started && !submitted) {
-      const interval = setInterval(syncFromBackend, 2000); // Sync every 2 seconds (reduced from 5 seconds)
+      const interval = setInterval(syncFromBackend, 2000);
       return () => clearInterval(interval);
     }
   }, [
@@ -502,7 +479,6 @@ const TakeTest = ({
   const handleAnswerChange = (qId, value) => {
     setAnswers((prev) => ({ ...prev, [qId]: value }));
     setLastUserActivity(Date.now());
-    // Trigger sync for this specific answer
     setPendingSync({ questionId: qId, answer: value });
   };
 
@@ -521,7 +497,6 @@ const TakeTest = ({
         [questionId]: paths,
       }));
       setLastUserActivity(Date.now());
-      // Trigger sync for this specific drawing
       setPendingSync({ questionId, drawing: paths });
     }
   };
@@ -545,12 +520,11 @@ const TakeTest = ({
   };
 
   const handleSubmit = async () => {
-    if (isSubmitting) return; // Prevent double submission
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
     await saveCurrentCanvas();
 
-    // Ensure token is set before making API calls
     const loggedUser = localStorage.getItem("loggedAppUser");
     if (loggedUser) {
       const userData = JSON.parse(loggedUser);
@@ -560,22 +534,21 @@ const TakeTest = ({
     }
 
     try {
-      // Final sync of all answers before submission
       if (testId && teamId) {
+        // Final sync before submission
         await answerService.update(testId, teamId, {
           answers,
           drawings: drawingByQuestionId,
           timeLeft,
         });
 
-        // Create submission
         await submissionService.create({
           testId,
           teamId,
           finalTimeLeft: timeLeft,
         });
 
-        // Remove team from test's assignees
+        // Remove team from current assignees as test is done
         const currentTest = Array.isArray(tests)
           ? tests.find((t) => String(t.id) === testId)
           : null;
@@ -586,14 +559,13 @@ const TakeTest = ({
             return assigneeId !== teamId;
           });
 
-          // Extract IDs for the API call (backend expects array of IDs)
           const assigneeIds = updatedAssignees.map((assignee) =>
             typeof assignee === "object" ? assignee.id : assignee,
           );
 
           await testService.updateTest(testId, { assignees: assigneeIds });
 
-          // Update local tests state
+          // Update local states
           if (setTests) {
             setTests((prevTests) => {
               if (!Array.isArray(prevTests)) {
@@ -613,7 +585,6 @@ const TakeTest = ({
         setSubmitted(true);
         clearTimeout(timerRef.current);
 
-        // Show success notification
         if (setNotif) {
           setNotif("Test submitted successfully!");
           setTimeout(() => setNotif(null), 5000);
@@ -624,7 +595,6 @@ const TakeTest = ({
     } catch (error) {
       console.error("Failed to submit test:", error);
 
-      // Show error notification
       if (setError) {
         setError("Failed to submit test. Please try again.");
         setTimeout(() => setError(null), 5000);
@@ -639,7 +609,6 @@ const TakeTest = ({
     setShowCanvas(false);
     setEraseMode(false);
 
-    // Ensure token is set before making API calls
     const loggedUser = localStorage.getItem("loggedAppUser");
     if (loggedUser) {
       const userData = JSON.parse(loggedUser);
@@ -657,10 +626,8 @@ const TakeTest = ({
           drawings: {},
           timeLeft: 50 * 60,
         });
-        // Set the time from the server response
         setTimeLeft(response.timeLeft);
       } catch (error) {
-        // If answers already exist, that's fine
         if (error.response?.status !== 409) {
           console.error("Failed to create initial answers:", error);
         }
@@ -677,7 +644,6 @@ const TakeTest = ({
         const paths = await canvasRef.current.exportPaths();
         setDrawingByQuestionId((prev) => ({ ...prev, [qid]: paths }));
         setLastUserActivity(Date.now());
-        // Trigger sync for this specific drawing
         setPendingSync({ questionId: qid, drawing: paths });
       }
       setShowCanvas(false);
@@ -706,7 +672,6 @@ const TakeTest = ({
         return updated;
       });
       setLastUserActivity(Date.now());
-      // Trigger sync to remove the drawing
       setPendingSync({ questionId: qid, drawing: null });
     }
   };
@@ -798,11 +763,10 @@ const TakeTest = ({
   const currentQuestion = test.questions?.[currentIdx];
   const currentQId = currentQuestion?.id;
 
-  // Ensure currentIdx is within bounds
   const questionsLength = test.questions?.length || 0;
   if (currentIdx >= questionsLength && questionsLength > 0) {
     setCurrentIdx(questionsLength - 1);
-    return null; // Re-render with correct index
+    return null;
   }
 
   return (

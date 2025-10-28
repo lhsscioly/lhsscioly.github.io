@@ -3,15 +3,16 @@ import { Link } from "react-router-dom";
 import submissionService from "../services/submissions";
 import statisticsService from "../services/statistics";
 
+// UI component to show past test submissions for review
 const ReviewTests = ({ user, users, teams }) => {
   const [submissions, setSubmissions] = useState([]);
   const [userSubmissions, setUserSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Gathers historical (previous, deleted teams) and current submissions (current teams) for the user
     const fetchSubmissions = async () => {
       if (user && users && teams) {
-        // Ensure token is set before making API calls
         const loggedUser = localStorage.getItem("loggedAppUser");
         if (loggedUser) {
           const userData = JSON.parse(loggedUser);
@@ -24,7 +25,6 @@ const ReviewTests = ({ user, users, teams }) => {
           const userTeams = currentUser?.teams || [];
           const currentTeamIds = userTeams.map((team) => team.id);
 
-          // Get submissions for all user's current teams
           const allSubmissions = [];
           for (const team of userTeams) {
             try {
@@ -36,8 +36,6 @@ const ReviewTests = ({ user, users, teams }) => {
               console.log(`No submissions found for team ${team.id}`);
             }
           }
-
-          // Get all historical submissions for this user (across all teams, including deleted ones)
           console.log(
             "Attempting to fetch user submissions for user:",
             user.id,
@@ -47,7 +45,6 @@ const ReviewTests = ({ user, users, teams }) => {
           );
           console.log("User submissions response:", allUserSubmissions);
 
-          // Filter out current team submissions from historical submissions
           const currentSubmissionIds = new Set(allSubmissions.map((s) => s.id));
           const historicalSubmissions = allUserSubmissions.filter(
             (s) => !currentSubmissionIds.has(s.id),
@@ -68,7 +65,6 @@ const ReviewTests = ({ user, users, teams }) => {
     fetchSubmissions();
   }, [user, users, teams]);
 
-  // Separate graded and ungraded submissions
   const gradedSubmissions = submissions.filter(
     (submission) => submission.graded,
   );
@@ -86,6 +82,7 @@ const ReviewTests = ({ user, users, teams }) => {
     );
   }
 
+  // Divides component into graded, ungraded, and historical submissions with data such as scores for the submitted ones
   return (
     <div className="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md space-y-8">
       <h2 className="text-2xl font-medium text-orange-800 mb-4 text-left">
@@ -98,7 +95,6 @@ const ReviewTests = ({ user, users, teams }) => {
         </p>
       ) : (
         <>
-          {/* Graded Submissions Section */}
           <div>
             <h3 className="text-xl font-medium text-green-700 mb-4 text-left border-b border-green-200 pb-2">
               Graded Tests ({gradedSubmissions.length})
@@ -145,7 +141,6 @@ const ReviewTests = ({ user, users, teams }) => {
             )}
           </div>
 
-          {/* Ungraded Submissions Section */}
           <div>
             <h3 className="text-xl font-medium text-orange-700 mb-4 text-left border-b border-orange-200 pb-2">
               Pending Grading ({ungradedSubmissions.length})
@@ -193,7 +188,6 @@ const ReviewTests = ({ user, users, teams }) => {
             )}
           </div>
 
-          {/* Historical Submissions Section (from previous teams) */}
           {userSubmissions.length > 0 && (
             <div>
               <h3 className="text-xl font-medium text-blue-700 mb-4 text-left border-b border-blue-200 pb-2">

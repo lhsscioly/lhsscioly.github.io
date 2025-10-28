@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+// UI component to edit individual events (for admins)
 const Event = (props) => {
   const [edit, setEdit] = useState(false);
   const [name, setName] = useState(props.event.name);
@@ -26,6 +27,7 @@ const Event = (props) => {
     await props.deleteEvent(props.event.id);
   };
 
+  // Similar features to adding events
   const addResource = () => {
     if (resource.trim() && resourceName.trim()) {
       setResources(resources.concat({ 

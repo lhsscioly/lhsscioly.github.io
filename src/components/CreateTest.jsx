@@ -7,6 +7,7 @@ import questionGen from "../services/questionGen";
 import { Link } from "react-router-dom";
 import QuestionItem from "./QuestionItem";
 
+// UI component to create and add tests to bank for admins
 const CreateTest = (props) => {
   const [open, setOpen] = useState(true);
   const [questions, setQuestions] = useState([]);
@@ -31,6 +32,7 @@ const CreateTest = (props) => {
       .every((s) => /^[A-Za-z]$/.test(s));
   };
 
+  // Adds question to list but does not upload to backend
   const addQuestion = () => {
     if (type.length === 0) {
       props.setError("Type of question required!");
@@ -91,6 +93,7 @@ const CreateTest = (props) => {
     setSelectedFile(null);
   };
 
+  // Handles test creation and uploading to backend. Also adds questions to question bank.
   const createTest = async (e) => {
     e.preventDefault();
     if (!event) {
@@ -179,6 +182,7 @@ const CreateTest = (props) => {
     }, 5000);
   };
 
+  // Modal to query for file upload to Gemini service
   const genQuestions = async (e) => {
     e.preventDefault();
     setModalOpen(false);
@@ -199,7 +203,6 @@ const CreateTest = (props) => {
 
     try {
       const questions = JSON.parse(cleaned);
-      // Normalize questions to ensure question field is always an array
       const normalizedQuestions = questions.map((q) => ({
         ...q,
         question: Array.isArray(q.question) ? q.question : [q.question],
@@ -370,7 +373,6 @@ const CreateTest = (props) => {
                           if (parts.length > 1) {
                             setQuestion(parts);
                           } else {
-                            // If no double newlines found, try splitting by single newlines
                             const singleParts = question[0]
                               .split("\n")
                               .filter((part) => part.trim() !== "");

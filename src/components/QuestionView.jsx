@@ -1,15 +1,16 @@
 import React from "react";
 
-function getAristocratType(questionText) {
+// Same cipher management as in Review
+const getAristocratType = (questionText) => {
   const lower = questionText.toLowerCase();
   if (!lower.includes("aristocrat")) return null;
   if (lower.includes("k3")) return "K3";
   if (lower.includes("k2")) return "K2";
   if (lower.includes("k1")) return "K1";
-  return "A"; // General Aristocrat
+  return "A";
 }
 
-function getLetterFrequencies(ciphertext) {
+const getLetterFrequencies = (ciphertext) => {
   const freq = {};
   for (let i = 0; i < 26; i++) freq[String.fromCharCode(65 + i)] = 0;
   for (const char of ciphertext.toUpperCase()) {
@@ -18,7 +19,7 @@ function getLetterFrequencies(ciphertext) {
   return freq;
 }
 
-function AristocratFrequencyTable({ type, ciphertext }) {
+const AristocratFrequencyTable = ({ type, ciphertext }) => {
   const freq = getLetterFrequencies(ciphertext);
   const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
   const frequencies = letters.map(l => freq[l] === 0 ? "" : freq[l]);
@@ -37,8 +38,8 @@ function AristocratFrequencyTable({ type, ciphertext }) {
     showLetterRow = false;
   } else if (type === "K2") {
     rowLabels = ["Replacement", "K2", "Frequency"];
-    row1 = Array(26).fill(""); // Replacement row always empty
-    row2 = letters; // K2 row filled out
+    row1 = Array(26).fill("");
+    row2 = letters;
     row3 = frequencies;
     showLetterRow = false;
   } else if (type === "K3") {
@@ -48,7 +49,6 @@ function AristocratFrequencyTable({ type, ciphertext }) {
     row3 = frequencies;
     showLetterRow = false;
   } else if (type === "A") {
-    // General Aristocrat: do not show bolded letter row up top
     rowLabels = ["Letter", "Replacement", "Frequency"];
     row1 = letters;
     row2 = Array(26).fill("");
@@ -115,15 +115,12 @@ const QuestionView = ({
     question.type === "mcq" && question.answer.includes(", ");
   const isSAQ = question.type === "saq";
 
-  // Helper function to format cipher text with proper spacing using spans
   const formatCipherText = (text) => {
-    // Check if this is a Baconian cipher by looking at the question text
     const questionText = question.question[0] || "";
     const isBaconian = questionText.toLowerCase().includes("baconian");
 
     if (isBaconian) {
-      // For Baconian cipher, group into 5-letter chunks
-      const cleanText = text.replace(/\s+/g, ""); // Remove existing spaces
+      const cleanText = text.replace(/\s+/g, "");
       const chunks = [];
       for (let i = 0; i < cleanText.length; i += 5) {
         chunks.push(cleanText.slice(i, i + 5));
@@ -134,9 +131,8 @@ const QuestionView = ({
         </span>
       ));
     } else {
-      // For other ciphers, use word-based spacing
       return text
-        .split(/\s+/) // Split by any whitespace into words
+        .split(/\s+/)
         .map((word, wordIndex) => (
           <span key={wordIndex} className="inline-block mr-4">
             {word.split("").map((char, charIndex) => (
@@ -149,6 +145,8 @@ const QuestionView = ({
     }
   };
 
+  // Special handling for questions with checkboxes
+  
   const handleCheckboxChange = (choice) => {
     const prev = Array.isArray(answer) ? answer : [];
     const updated = prev.includes(choice)

@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import submissionService from "../services/submissions";
 import testService from "../services/tests";
 
+// UI component showing all tests taken by students to admins
 const AllTests = ({ user }) => {
-  // If user is not loaded yet, show loading
   if (!user) {
     return (
       <div className="flex justify-center items-center h-48">
@@ -13,7 +13,6 @@ const AllTests = ({ user }) => {
     );
   }
 
-  // If user is not admin, they shouldn't be here
   if (!user.admin) {
     return (
       <div className="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
@@ -26,8 +25,7 @@ const AllTests = ({ user }) => {
       </div>
     );
   }
-
-  // User is loaded and is admin, render the actual component
+  
   return <AllTestsContent user={user} />;
 };
 
@@ -35,14 +33,14 @@ const AllTestsContent = ({ user }) => {
   const [submissions, setSubmissions] = useState([]);
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all, graded, ungraded
-  const [schoolYearFilter, setSchoolYearFilter] = useState("all"); // all, or specific year
+  const [filter, setFilter] = useState("all"); 
+  const [schoolYearFilter, setSchoolYearFilter] = useState("all");
   const [availableSchoolYears, setAvailableSchoolYears] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // The following blocks of code fetch all test data with relevant school years and filters
   useEffect(() => {
     const fetchAllData = async () => {
-      // Ensure token is set before making API calls
       const loggedUser = localStorage.getItem("loggedAppUser");
       if (loggedUser) {
         const userData = JSON.parse(loggedUser);
@@ -59,16 +57,14 @@ const AllTestsContent = ({ user }) => {
         setSubmissions(allSubmissions);
         setTests(allTests);
 
-        // Extract unique school years from submissions
         const years = [
           ...new Set(
             allSubmissions.map((sub) => sub.schoolYear).filter(Boolean),
           ),
         ].sort((a, b) => {
-          // Extract the starting year from "YYYY-YYYY" format for sorting
           const yearA = parseInt(a.split("-")[0]);
           const yearB = parseInt(b.split("-")[0]);
-          return yearB - yearA; // Sort descending (newest first)
+          return yearB - yearA;
         });
         setAvailableSchoolYears(years);
       } catch (error) {
@@ -83,30 +79,26 @@ const AllTestsContent = ({ user }) => {
 
   const getFilteredSubmissions = () => {
     return submissions.filter((submission) => {
-      // Filter by grading status
       if (filter === "graded" && !submission.graded) return false;
       if (filter === "ungraded" && submission.graded) return false;
 
-      // Filter by school year
       if (schoolYearFilter !== "all") {
         const submissionYear = submission.schoolYear;
         if (submissionYear !== schoolYearFilter) return false;
       }
 
-      // Filter by search term (test name, event, team name, or student names)
+      // Various different search terms, unlike filters in other components
       if (searchTerm.trim()) {
         const search = searchTerm.toLowerCase();
         const testName =
           `${submission.test?.school || ""} ${submission.test?.year || ""} ${submission.test?.event || ""}`.toLowerCase();
         const teamName = submission.team?.name?.toLowerCase() || "";
 
-        // Handle student names more robustly
+        // Get students in multiple ways in case teams were deleted
         let studentNames = "";
 
-        // Try team students first
         let students = submission.team?.students;
 
-        // If no team students, try users
         if (!students || (Array.isArray(students) && students.length === 0)) {
           students = submission.users;
         }
@@ -174,16 +166,15 @@ const AllTestsContent = ({ user }) => {
   const filteredSubmissions = getFilteredSubmissions();
   const stats = getSubmissionStats();
 
+  // Divided into ungraded, graded, and submitted tests
   return (
     <div className="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md space-y-8">
       <h2 className="text-2xl font-medium text-orange-800 mb-4 text-left">
         All Test Submissions
       </h2>
 
-      {/* Filters */}
       <div className="bg-orange-50 p-4 rounded-lg space-y-4">
         <div className="flex flex-wrap gap-4 items-center">
-          {/* Grading Status Filter */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-orange-700">
               Status:
@@ -199,7 +190,6 @@ const AllTestsContent = ({ user }) => {
             </select>
           </div>
 
-          {/* School Year Filter */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-orange-700">
               School Year:
@@ -218,7 +208,6 @@ const AllTestsContent = ({ user }) => {
             </select>
           </div>
 
-          {/* Search */}
           <div className="flex items-center gap-2 flex-1 min-w-[200px]">
             <label className="text-sm font-medium text-orange-700">
               Search:
@@ -244,7 +233,6 @@ const AllTestsContent = ({ user }) => {
         </p>
       ) : (
         <>
-          {/* Graded Submissions Section */}
           <div>
             <h3 className="text-xl font-medium text-green-700 mb-4 text-left border-b border-green-200 pb-2">
               Graded Tests ({filteredSubmissions.filter((s) => s.graded).length}
@@ -284,7 +272,6 @@ const AllTestsContent = ({ user }) => {
                           <p className="text-xs text-gray-500">
                             Students:{" "}
                             {(() => {
-                              // Try to find student data
                               let students = null;
 
                               if (submission.team?.students) {
@@ -301,7 +288,6 @@ const AllTestsContent = ({ user }) => {
                                 return "No students found";
                               }
 
-                              // Only show students with firstName and lastName
                               const names = students
                                 .filter(
                                   (student) =>
@@ -340,7 +326,6 @@ const AllTestsContent = ({ user }) => {
             )}
           </div>
 
-          {/* Ungraded Submissions Section */}
           <div>
             <h3 className="text-xl font-medium text-orange-700 mb-4 text-left border-b border-orange-200 pb-2">
               Ungraded Tests (
@@ -374,7 +359,6 @@ const AllTestsContent = ({ user }) => {
                           <p className="text-xs text-gray-500">
                             Students:{" "}
                             {(() => {
-                              // Try to find student data
                               let students = null;
 
                               if (submission.team?.students) {
@@ -391,7 +375,6 @@ const AllTestsContent = ({ user }) => {
                                 return "No students found";
                               }
 
-                              // Only show students with firstName and lastName
                               const names = students
                                 .filter(
                                   (student) =>
@@ -430,7 +413,6 @@ const AllTestsContent = ({ user }) => {
             )}
           </div>
 
-          {/* Assigned Tests Section */}
           <div>
             <h3 className="text-xl font-medium text-red-700 mb-4 text-left border-b border-red-200 pb-2">
               Assigned Tests ({getAssignedTests().length})

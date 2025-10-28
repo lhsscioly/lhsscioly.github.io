@@ -4,13 +4,6 @@ const User = require("../models/user");
 const { userExtractor } = require("../utils/middleware");
 const { handleError, createErrorResponse, isValidObjectId, sanitizeInput, checkResourceOwnership } = require("../utils/security");
 
-/**
- * Helper function to determine team ownership for resource validation
- * Used by checkResourceOwnership middleware to verify access rights
- * @param {string} teamId - The ID of the team to check
- * @param {Object} user - The current user object
- * @returns {Promise<boolean>} True if user has access to the team
- */
 const getTeamOwner = async (teamId, user) => {
   try {
     const team = await Team.findById(teamId).populate('students', '_id');
@@ -19,12 +12,10 @@ const getTeamOwner = async (teamId, user) => {
       return false;
     }
 
-    // Admin users can access any team
     if (user.admin) {
       return true;
     }
 
-    // Check if user is a member of the team
     return team.students.some(student => student._id.toString() === user.id);
   } catch (error) {
     console.error("Error checking team ownership:", error);
@@ -32,12 +23,7 @@ const getTeamOwner = async (teamId, user) => {
   }
 };
 
-/**
- * GET /api/teams - Get all teams (Verified users only)
- * Returns all teams in the system with populated student data
- */
 teamsRouter.get("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated and verified
   if (!request.user || !request.user.verified) {
     return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
@@ -51,12 +37,7 @@ teamsRouter.get("/", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * GET /api/teams/:id - Get specific team by ID with ownership validation
- * Team members can view their own team, admins can view any team
- */
 teamsRouter.get("/:id", userExtractor, checkResourceOwnership(getTeamOwner), async (request, response) => {
-  // Validate ObjectId format
   if (!isValidObjectId(request.params.id)) {
     return response.status(400).json(createErrorResponse('Invalid team ID format', 400, 'INVALID_ID'));
   }
@@ -75,17 +56,11 @@ teamsRouter.get("/:id", userExtractor, checkResourceOwnership(getTeamOwner), asy
   }
 });
 
-/**
- * POST /api/teams - Create new team (Admin only)
- * Creates a new team and updates user records with team membership
- */
 teamsRouter.post("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated and is admin
   if (!request.user || !request.user.admin) {
     return response.status(401).json(createErrorResponse('Admin access required', 401, 'UNAUTHORIZED'));
   }
 
-  // Sanitize and validate input
   const sanitizedBody = sanitizeInput(request.body);
   const { event, name, students, schoolYear } = sanitizedBody;
 

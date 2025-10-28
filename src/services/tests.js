@@ -1,5 +1,7 @@
 import apiClient from "./apiClient";
 
+// Handles all backend communication for tests
+
 const baseUrl = "/api/tests";
 
 let token = null;

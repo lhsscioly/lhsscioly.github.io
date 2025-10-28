@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import userService from "../services/users";
 
+// UI component for verifying user email
+
 const Verify = (props) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

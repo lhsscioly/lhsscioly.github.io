@@ -3,12 +3,7 @@ const Question = require("../models/question");
 const { userExtractor } = require("../utils/middleware");
 const { handleError, createErrorResponse, isValidObjectId, sanitizeInput } = require("../utils/security");
 
-/**
- * GET /api/questions - Get all questions (Verified users only)
- * Returns all questions in the system
- */
 questionsRouter.get("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated and verified
   if (!request.user || !request.user.verified) {
     return response.status(401).json(createErrorResponse('Authentication and email verification required', 401, 'UNAUTHORIZED'));
   }
@@ -22,17 +17,11 @@ questionsRouter.get("/", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * POST /api/questions - Create new question (Admin only, must be verified)
- * Creates a new question with proper validation and security checks
- */
 questionsRouter.post("/", userExtractor, async (request, response) => {
-  // Ensure user is authenticated, verified, and is admin
   if (!request.user || !request.user.verified || !request.user.admin) {
     return response.status(401).json(createErrorResponse('Admin access required and email must be verified', 401, 'UNAUTHORIZED'));
   }
 
-  // Sanitize and validate input
   const sanitizedBody = sanitizeInput(request.body);
   const {
     event,
@@ -68,22 +57,15 @@ questionsRouter.post("/", userExtractor, async (request, response) => {
   }
 });
 
-/**
- * PUT /api/questions/:id - Update question (Admin only, must be verified)
- * Updates an existing question with proper validation and security checks
- */
 questionsRouter.put("/:id", userExtractor, async (request, response) => {
-  // Ensure user is authenticated, verified, and is admin
   if (!request.user || !request.user.verified || !request.user.admin) {
     return response.status(401).json(createErrorResponse('Admin access required and email must be verified', 401, 'UNAUTHORIZED'));
   }
 
-  // Validate ObjectId format
   if (!isValidObjectId(request.params.id)) {
     return response.status(400).json(createErrorResponse('Invalid question ID format', 400, 'INVALID_ID'));
   }
 
-  // Sanitize and validate input
   const sanitizedBody = sanitizeInput(request.body);
   const {
     event,
@@ -103,7 +85,6 @@ questionsRouter.put("/:id", userExtractor, async (request, response) => {
       return response.status(404).json(createErrorResponse('Question not found', 404, 'NOT_FOUND'));
     }
 
-    // Update question fields with sanitized data
     questionObject.event = event;
     questionObject.school = school;
     questionObject.year = year;

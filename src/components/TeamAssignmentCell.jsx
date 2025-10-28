@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 
+// UI component for each event's teams in a lineup
+
 const TeamAssignmentCell = ({ event, users, teams, onSave, user }) => {
+
   const [assignments, setAssignments] = useState({
     orange: [],
     black: [],
     white: [],
   });
 
+  // Holds history of assignments in case user cancels edits
   const [originalAssignments, setOriginalAssignments] = useState({
     orange: [],
     black: [],
@@ -23,6 +27,7 @@ const TeamAssignmentCell = ({ event, users, teams, onSave, user }) => {
   const [originalShowWhite, setOriginalShowWhite] = useState(false);
   const [editing, setEditing] = useState(false);
 
+  // Get current teams
   useEffect(() => {
     const grouped = {
       orange: [],
@@ -40,6 +45,8 @@ const TeamAssignmentCell = ({ event, users, teams, onSave, user }) => {
     setOriginalShowWhite(whiteVisible);
   }, [teams]);
 
+  // Handles adding user to a team
+  // Has a convenient system where only part of the name is needed.
   const handleAdd = (teamType) => {
     const name = inputs[teamType].trim().toLowerCase();
     const user = users.find(
@@ -64,6 +71,7 @@ const TeamAssignmentCell = ({ event, users, teams, onSave, user }) => {
     }));
   };
 
+  // Team assignments for JV and Varsity teams, with optional JV2 team
   const renderTeamBlock = (teamType, label, bgColor, textColor) => (
     <div className="w-full">
       <div

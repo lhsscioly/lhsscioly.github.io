@@ -38,6 +38,7 @@ import {
   Navigate,
 } from "react-router-dom";
 
+// Main app with global component like the users, errors, and tests
 function App() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
@@ -49,6 +50,7 @@ function App() {
   const [teams, setTeams] = useState([]);
   const navigate = useNavigate();
 
+  // All authentication parts of the app use JWT, and user info is stored in localStorage for convenience of logging in
   useEffect(() => {
     const loggedUser = localStorage.getItem("loggedAppUser");
     if (loggedUser) {
@@ -64,6 +66,8 @@ function App() {
       statisticsService.setToken(user.token);
     }
   }, []);
+
+  // Various similar useEffect hooks to gather data from backend
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -151,6 +155,7 @@ function App() {
     }
   }, [user]);
 
+  // Handles local storage and backend during sign up
   const handleSignUp = async (credentials) => {
     try {
       const user = await userService.createUser(credentials);
@@ -167,7 +172,7 @@ function App() {
       navigate("/");
       console.log("Sign Up");
       setNotif(
-        "signed up successfully, please check your email to verify your email",
+        "Signed up successfully, please check your email to verify your email",
       );
       setTimeout(() => {
         setNotif(null);
@@ -220,6 +225,7 @@ function App() {
     }
   };
 
+  // Handles local storage during logout
   const handleLogout = () => {
     window.localStorage.removeItem("loggedAppUser");
     setUser(null);
@@ -238,6 +244,7 @@ function App() {
     }, 5000);
   };
 
+  // Handles local storage and backend for login
   const handleLogin = async (credentials) => {
     try {
       const user = await loginService.login(credentials);
@@ -273,6 +280,7 @@ function App() {
     }
   };
 
+  // Relays password reset from settings tab to backend
   const handleReset = async (newPass) => {
     try {
       await userService.resetPass({ id: user.id, password: newPass });
@@ -303,6 +311,7 @@ function App() {
     }
   };
 
+  // Relays password reset request (for e-mail) to backend
   const handleForgot = async (email) => {
     try {
       await userService.forgot(email);
@@ -323,6 +332,7 @@ function App() {
     }
   };
 
+  // Relays password reset from e-mail link to backend
   const handleEmailReset = async (token, password) => {
     try {
       await userService.resetEmailPass(token, password);
@@ -353,10 +363,12 @@ function App() {
     }
   };
 
+  // Structure that every part of the app shares
   return (
     <div className="font-display min-h-screen w-full flex flex-col bg-repeat-y bg-[url('/radiant-combined.svg')] bg-[length:100%]">
       <nav className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Nav Bar with conditional links depending on who the user is */}
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center space-x-4">
               <Link
@@ -542,6 +554,7 @@ function App() {
         </div>
       </nav>
 
+      { /* Universal error and notifications */ }
       <div className="flex-grow pt-6 pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {error && (
@@ -564,6 +577,7 @@ function App() {
             </div>
           )}
 
+          {/* All possible website routes using HashRouter for memory */}
           <Routes>
             <Route path="/" element={<Home user={user} />} />
             <Route
@@ -709,7 +723,7 @@ function App() {
                   ? user.admin
                     ? <Statistics />
                     : <Navigate to="/" replace />
-                  : null // Don't render anything until user is loaded
+                  : null
               }
             />
             <Route

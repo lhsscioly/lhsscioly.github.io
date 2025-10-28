@@ -2,6 +2,8 @@ import apiClient from "./apiClient";
 
 const baseUrl = "/api/questions";
 
+// Handles all backend communication for test questions
+
 let token = null;
 
 const setToken = (newToken) => {

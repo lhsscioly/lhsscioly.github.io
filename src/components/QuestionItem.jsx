@@ -1,8 +1,8 @@
 import { useState } from "react";
 
+// UI component to edit/display questions to a test in CreateTest view
 const QuestionItem = ({ q, index, onEdit, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
-  // Ensure question is always an array
   const normalizedQ = {
     ...q,
     question: Array.isArray(q.question) ? q.question : [q.question],
@@ -22,6 +22,7 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
             <label className="block text-sm font-medium text-orange-800 mb-2">
               Question
             </label>
+            {/* Managing for multiple question parts, such as where the question and the cipher are separated in Codebusters */}
             <div className="space-y-2">
               {editFields.question.map((part, partIndex) => (
                 <div
@@ -99,7 +100,6 @@ const QuestionItem = ({ q, index, onEdit, onDelete }) => {
                           question: parts,
                         });
                       } else {
-                        // If no double newlines found, try splitting by single newlines
                         const singleParts = editFields.question[0]
                           .split("\n")
                           .filter((part) => part.trim() !== "");

@@ -2,6 +2,8 @@ import apiClient from "./apiClient";
 
 const baseUrl = "/api/statistics";
 
+// Handles all backend communication for test statistics
+
 let token = null;
 
 const setToken = (newToken) => {

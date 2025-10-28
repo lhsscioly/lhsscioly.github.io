@@ -1,5 +1,7 @@
 import apiClient from "./apiClient";
 
+// Handles backend communication for logging in
+
 const baseUrl = "/api/login";
 
 const login = async (credentials) => {

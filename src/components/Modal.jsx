@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+// UI component for modal dialogs, such as for the AI test creation
 const Modal = ({ isOpen, onClose, title, children }) => {
   useEffect(() => {
     const handleEsc = (e) => {

@@ -79,7 +79,7 @@ usersRouter.post("/", async (request, response) => {
 
     const savedUser = await userObject.save();
 
-    // Send verification email with proper error handling
+    // Send verification email
     const transporter = nodemailer.createTransport({
       service: "Gmail",
       auth: {
@@ -131,15 +131,14 @@ usersRouter.post("/forgot", async (req, res) => {
     return res.status(400).json({ error: "No user with that email" });
   }
 
-  // Generate secure reset token with expiration
   const token = crypto.randomUUID();
   user.resetPasswordToken = token;
-  user.resetPasswordExpires = Date.now() + 1000 * 60 * 15; // 15 minutes
+  user.resetPasswordExpires = Date.now() + 1000 * 60 * 15;
   await user.save();
 
-  // Use correct domain for reset link
   const resetLink = `https://lhsscioly.github.io/#/reset?token=${token}`;
 
+  // Send reset email
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
@@ -188,6 +187,7 @@ usersRouter.post("/reset", async (req, res) => {
     });
   }
 
+  // Ensure passwords aren't stored as plaintext
   const passwordHash = await bcrypt.hash(password, 10);
   user.passwordHash = passwordHash;
   user.resetPasswordToken = undefined;

@@ -1,5 +1,7 @@
 require("dotenv").config();
 
+// All important environmental variables
+
 const PORT = process.env.PORT;
 const MONGODB_URI = process.env.MONGODB_URI;
 const ADMIN_KEY = process.env.ADMIN_KEY;

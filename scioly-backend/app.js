@@ -29,7 +29,7 @@ mongoose
     logger.error("error connecting to MongoDB:", error.message);
   });
 
-// Configure CORS to only allow requests from the official domain
+// Uses CORS to only allow requests from the official domain
 app.use(cors({
   origin: ['https://lhsscioly.github.io'],
   credentials: true,
@@ -37,7 +37,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Limit request size to prevent DoS attacks
 app.use(express.json({ limit: '10mb' }));
 app.use(middleware.tokenExtractor);
 //app.use(express.static("dist"));
