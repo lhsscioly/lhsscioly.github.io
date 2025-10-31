@@ -72,7 +72,7 @@ const Test = ({ tests, user, teams, setError, setNotif, setTests }) => {
     } catch (error) {
       console.error("Error assigning test:", error);
       if (error.response && error.response.status === 409) {
-        setError(error.response.data.error);
+        setError(error?.response?.data?.error?.message);
       } else {
         setError("Failed to assign test. Please try again.");
       }
